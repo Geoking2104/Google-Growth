@@ -43,6 +43,16 @@ export async function getSitemap(siteUrl: string, feedpath: string) {
 }
 
 /**
+ * Submit (add) a sitemap to a Search Console property.
+ * Requires the full `webmasters` scope and write permission on the property.
+ */
+export async function submitSitemap(siteUrl: string, feedpath: string) {
+  const wm = await getWebmasters();
+  await wm.sitemaps.submit({ siteUrl, feedpath });
+  return { siteUrl, feedpath, submitted: true };
+}
+
+/**
  * Inspect a URL's index status (verdict, coverage, last crawl, canonicals, robots).
  * Equivalent to the URL Inspection tool in Search Console.
  */
