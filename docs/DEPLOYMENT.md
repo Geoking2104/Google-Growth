@@ -4,104 +4,66 @@ This document covers production deployment with Docker, Fly.io and Railway, incl
 
 ## 1. Prerequisites
 
-- Service Account JSON key with **Viewer** access on your GA4 properties
+- Service Account JSON key with **Viewer** on GA4, **Read** on GTM, and access on Search Console if you use those tools
+- Optional API keys for PageSpeed Insights and CrUX
 - (Recommended) A Redis instance for caching
 
 ## 2. Local with Docker Compose (easiest)
 
 ```bash
-# Place your key next to docker-compose.yml
 cp /path/to/your-service-account.json ./service-account.json
-
-# Optional: set default property
 export GA4_PROPERTY_ID=123456789
+export PAGESPEED_API_KEY=...
+export CRUX_API_KEY=...
 
 docker compose up -d --build
 ```
 
-Server will be available at `http://localhost:3000`  
-SSE endpoint: `http://localhost:3000/sse`
+Server: `http://localhost:3000`  
+MCP: `http://localhost:3000/mcp`  
+Legacy SSE: `http://localhost:3000/sse`
 
-Redis is included automatically.
+Redis is included automatically. Writes stay disabled unless you set the flags to `true`.
 
 ---
 
 ## 3. Fly.io (recommended for Grok)
 
-### Install & login
-
-```bash
-curl -L https://fly.io/install.sh | sh
-fly auth login
-```
-
-### Create the app
-
-```bash
-fly launch --name ga-to-grok --region cdg   # or your preferred region
-# Answer "No" to the Postgres question
-```
-
-### Create a Redis instance (Upstash via Fly)
-
-```bash
-fly redis create
-# Choose the same region and note the REDIS_URL
-```
-
 ### Secrets
 
 ```bash
-# Upload your service account as a secret file
 fly secrets set GOOGLE_CREDENTIALS_JSON="$(cat service-account.json)"
-
-# Or mount it as a file (alternative)
-# fly secrets set GOOGLE_APPLICATION_CREDENTIALS=/secrets/sa.json
-
 fly secrets set REDIS_URL="redis://default:...@..."
-fly secrets set GA4_PROPERTY_ID=123456789   # optional
+fly secrets set GA4_PROPERTY_ID=123456789
+fly secrets set PAGESPEED_API_KEY=...
+fly secrets set CRUX_API_KEY=...
+# leave write flags unset or false
+fly secrets set GA4_WRITE_ENABLED=false
+fly secrets set SEARCH_CONSOLE_WRITE_ENABLED=false
+fly secrets set INDEXING_WRITE_ENABLED=false
 ```
 
-### Deploy
-
-```bash
-fly deploy
-```
-
-Your public URL will look like:  
-`https://ga-to-grok.fly.dev/sse`
-
-Use this URL in Grok → Connectors → Custom.
-
-### Useful commands
-
-```bash
-fly status
-fly logs
-fly scale count 1
-```
+Public URL: `https://ga-to-grok.fly.dev/mcp`
 
 ---
 
 ## 4. Railway
 
-1. Go to [railway.app](https://railway.app) → New Project → Deploy from GitHub
-2. Select the `Geoking2104/GA-to-Grok` repository
-3. Add a **Redis** plugin (Railway → + New → Database → Redis)
-4. In the service variables:
-
 ```
 GOOGLE_CREDENTIALS_JSON = {paste the full JSON}
 REDIS_URL = ${{Redis.REDIS_URL}}
-GA4_PROPERTY_ID = 123456789          # optional
+GA4_PROPERTY_ID = 123456789
+PAGESPEED_API_KEY = ...
+CRUX_API_KEY = ...
 TRANSPORT = http
 PORT = 3000
+GA4_WRITE_ENABLED = false
+GTM_WRITE_ENABLED = false
+SEARCH_CONSOLE_WRITE_ENABLED = false
+INDEXING_WRITE_ENABLED = false
 ```
 
-5. Generate a public domain (Settings → Networking → Generate Domain)
-
-Your SSE endpoint will be:  
-`https://your-app.up.railway.app/sse`
+Endpoint: `https://your-app.up.railway.app/mcp`
 
 ---
 
@@ -113,9 +75,12 @@ Your SSE endpoint will be:
 | `GOOGLE_CREDENTIALS_JSON` | ★ | Alternative: full JSON content |
 | `REDIS_URL` | Recommended | Redis connection string |
 | `GA4_PROPERTY_ID` | Optional | Default property |
-| `PORT` | Optional | Default 3000 |
-| `CACHE_TTL_REPORT` | Optional | Seconds (default 600) |
-| `CACHE_TTL_METADATA` | Optional | Seconds (default 3600) |
+| `PAGESPEED_API_KEY` / `CRUX_API_KEY` / `GOOGLE_API_KEY` | Optional | Performance tools |
+| `MCP_API_TOKEN` | Recommended on public hosts | Bearer token for `/mcp` |
+| `GA4_WRITE_ENABLED` | Optional | Default false |
+| `GTM_WRITE_ENABLED` | Optional | Default false |
+| `SEARCH_CONSOLE_WRITE_ENABLED` | Optional | Sitemap submit |
+| `INDEXING_WRITE_ENABLED` | Optional | URL notifications |
 
 ★ One of the two Google auth methods is required.
 
@@ -125,11 +90,12 @@ Your SSE endpoint will be:
 
 1. Open [grok.com/connectors](https://grok.com/connectors)
 2. **New Connector → Custom**
-3. Paste: `https://your-public-url/sse`
+3. Paste: `https://your-public-url/mcp`
 4. Save and start chatting
 
 Recommended first prompts:
 
 - "List my GA4 properties"
 - "Give me a traffic overview for the last 7 days"
-- "What are the top pages this month?"
+- "Top Search Console queries for the last 28 days"
+- "Run PageSpeed on the homepage"
