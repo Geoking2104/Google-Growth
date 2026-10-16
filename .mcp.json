@@ -1,6 +1,6 @@
 {
   "mcpServers": {
-    "ga-to-grok": {
+    "google-growth": {
       "command": "node",
       "args": ["dist/index.js", "--transport", "stdio"],
       "env": {
