@@ -6,6 +6,8 @@ const SCOPES = [
   "https://www.googleapis.com/auth/analytics.edit",
   "https://www.googleapis.com/auth/tagmanager.readonly",
   "https://www.googleapis.com/auth/tagmanager.edit.containers",
+  // Search Console (sites, sitemaps, URL inspection) — read-only
+  "https://www.googleapis.com/auth/webmasters.readonly",
 ];
 
 export async function getAuthClient(): Promise<JWT | GoogleAuth> {
