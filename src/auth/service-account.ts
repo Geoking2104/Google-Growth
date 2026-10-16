@@ -10,6 +10,8 @@ const SCOPES = [
   "https://www.googleapis.com/auth/webmasters.readonly",
   // Search Console write (submit sitemap) — gated by SEARCH_CONSOLE_WRITE_ENABLED
   "https://www.googleapis.com/auth/webmasters",
+  // Google Indexing API (URL_UPDATED / URL_DELETED) — gated by INDEXING_WRITE_ENABLED
+  "https://www.googleapis.com/auth/indexing",
 ];
 
 export async function getAuthClient(): Promise<JWT | GoogleAuth> {
