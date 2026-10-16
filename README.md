@@ -2,7 +2,7 @@
 
 **Open-source MCP server** connecting **Google Analytics 4**, **Google Tag Manager** (web + **server-side**), **Measurement Protocol**, **Search Console**, the **Indexing API**, **PageSpeed Insights**, and **CrUX** to **Grok** (xAI), **Claude** (Anthropic), **Codex** (OpenAI), and any MCP-capable agent.
 
-The agent reads live Google data, audits setups, crosses organic search with site speed, and (when explicitly enabled) submits sitemaps or notifies the Indexing API — via **MCP tools** or a **CLI**. The skill is named **Google Growth**. The MCP server stays `ga-to-grok`.
+The agent reads live Google data, audits setups, crosses organic search with site speed, and (when explicitly enabled) submits sitemaps or notifies the Indexing API — via **MCP tools** or a **CLI**. Skill and MCP server are both named **google-growth**. The GitHub repo stays GA-to-Grok.
 
 | Client | How to connect | Skill install |
 |--------|----------------|---------------|
@@ -64,7 +64,7 @@ The agent-facing method lives in [`skills/google-growth/`](skills/google-growth/
                        │ MCP (stdio or HTTPS /mcp)
                        ▼
               ┌───────────────────┐
-              │    GA-to-Grok     │
+              │   google-growth   │
               │  Service Account  │
               └─────────┬─────────┘
      ┌─────────────────┼───────────────────┐
@@ -200,7 +200,7 @@ npm run build
 
 | File | Role |
 |------|------|
-| `.grok/config.toml` | Grok Build MCP server (`ga-to-grok`) |
+| `.grok/config.toml` | Grok Build MCP server (`google-growth`) |
 | `.mcp.json` | Claude Code / Cursor / Codex local stdio |
 | `skills/google-growth/` | Canonical skill (Agensi, Claude, Codex) |
 | `skills/google-growth/agents/openai.yaml` | Codex display metadata |
@@ -213,9 +213,9 @@ npm run build
 ### Grok
 
 ```bash
-grok mcp add --scope project ga-to-grok -- node dist/index.js --transport stdio
+grok mcp add --scope project google-growth -- node dist/index.js --transport stdio
 # or remote
-grok mcp add --transport http ga-to-grok https://your-host.example.com/mcp
+grok mcp add --transport http google-growth https://your-host.example.com/mcp
 ```
 
 Or [grok.com/connectors](https://grok.com/connectors) → New Connector → Custom → `https://your-server.com/mcp`.
@@ -396,7 +396,7 @@ npm run typecheck
 ## 11. Project layout
 
 ```text
-.grok/config.toml              # Grok Build MCP (server name stays ga-to-grok)
+.grok/config.toml              # Grok Build MCP (server name: google-growth)
 .mcp.json                      # Claude / Cursor / Codex local stdio
 skills/google-growth/          # canonical skill
   agents/openai.yaml           # Codex appearance metadata
