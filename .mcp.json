@@ -7,9 +7,14 @@
         "GOOGLE_APPLICATION_CREDENTIALS": "${GOOGLE_APPLICATION_CREDENTIALS}",
         "GOOGLE_CREDENTIALS_JSON": "${GOOGLE_CREDENTIALS_JSON}",
         "GA4_PROPERTY_ID": "${GA4_PROPERTY_ID}",
+        "PAGESPEED_API_KEY": "${PAGESPEED_API_KEY}",
+        "CRUX_API_KEY": "${CRUX_API_KEY}",
+        "GOOGLE_API_KEY": "${GOOGLE_API_KEY}",
         "TRANSPORT": "stdio",
         "GA4_WRITE_ENABLED": "false",
-        "GTM_WRITE_ENABLED": "false"
+        "GTM_WRITE_ENABLED": "false",
+        "SEARCH_CONSOLE_WRITE_ENABLED": "false",
+        "INDEXING_WRITE_ENABLED": "false"
       }
     }
   }
