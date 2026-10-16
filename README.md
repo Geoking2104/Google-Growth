@@ -1,10 +1,16 @@
 # GA-to-Grok
 
-**Open-source MCP server** connecting **Google Analytics 4**, **Google Tag Manager** (web + **server-side**), **Measurement Protocol**, **Search Console**, the **Indexing API**, **PageSpeed Insights**, and **CrUX** to **Grok** (xAI) and any MCP-capable agent.
+**Open-source MCP server** connecting **Google Analytics 4**, **Google Tag Manager** (web + **server-side**), **Measurement Protocol**, **Search Console**, the **Indexing API**, **PageSpeed Insights**, and **CrUX** to **Grok** (xAI), **Claude** (Anthropic), **Codex** (OpenAI), and any MCP-capable agent.
 
-Grok can read live Google data, audit setups, cross organic search with site speed, and (when explicitly enabled) submit sitemaps or notify the Indexing API — via **MCP tools** or a **CLI**.
+The agent reads live Google data, audits setups, crosses organic search with site speed, and (when explicitly enabled) submits sitemaps or notifies the Indexing API — via **MCP tools** or a **CLI**. The same skill works on all three clients.
 
-> Compatible with **Grok Build**, **Grok Connectors** (Custom MCP), **Claude Code**, **Codex**, Cursor (`.mcp.json`), and self-hosted deployments.  
+| Client | How to connect | Skill install |
+|--------|----------------|---------------|
+| **Grok** (xAI) | [grok.com/connectors](https://grok.com/connectors) or Grok Build | Agensi zip or `skills/ga-to-grok/` |
+| **Claude** (Anthropic) | Claude Code MCP / `.mcp.json` | `.claude/skills/ga-to-grok/` — [docs/CLAUDE_SETUP.md](docs/CLAUDE_SETUP.md) |
+| **Codex** (OpenAI) | Codex MCP settings | `.codex/skills/ga-to-grok/` — [docs/CODEX_SETUP.md](docs/CODEX_SETUP.md) |
+
+> Compatible with **Grok**, **Claude Code**, **Codex**, Cursor (`.mcp.json`), and self-hosted deployments.  
 > **Apache-2.0** license · Node ≥ 20
 
 ---
@@ -50,36 +56,45 @@ The agent-facing method lives in [`skills/ga-to-grok/`](skills/ga-to-grok/) (sam
 ## Architecture (high level)
 
 ```text
-                    ┌────────────────────┐
-                    │   Grok / Agents     │
-                    │  (MCP tools + CLI)  │
-                    └──────────┬──────────┘
-                                │ STDIO or HTTP (Streamable /mcp + /sse)
-                               ▼
-                    ┌─────────────────────┐
-                    │    GA-to-Grok       │
-                    │  Service Account    │
-                    └──────────┬──────────┘
-     ┌──────────────────────┼──────────────────────┐
-     ▼                   ▼                   ▼
- GA4 Data/Admin      GTM Web + sGTM      Search Console
- + MP secrets        tags / clients      + Indexing API
-                                         + PageSpeed / CrUX
+     ┌──────────┐   ┌────────────┐   ┌─────────┐
+     │  Grok   │   │   Claude   │   │  Codex  │
+     │  (xAI)  │   │ (Anthropic)│   │ (OpenAI)│
+     └────┬─────┘   └─────┬──────┘   └────┬─────┘
+          └───────────────┬─────────────┘
+                       │ MCP (stdio or HTTPS /mcp)
+                       ▼
+              ┌───────────────────┐
+              │    GA-to-Grok     │
+              │  Service Account  │
+              └─────────┬─────────┘
+     ┌─────────────────┼───────────────────┐
+     ▼              ▼              ▼
+ GA4 Data/Admin  GTM Web + sGTM  Search Console
+ + MP secrets    tags / clients  + Indexing API
+                                 + PageSpeed / CrUX
 ```
 
 ---
 
-## Connect — three solutions
+## Connect — pick your client
 
-| Solution | Best for | What you need |
-|----------|----------|----------------|
-| **A. Custom Connector (HTTPS)** | Marketing teams, Grok web | Deploy once; add URL in [grok.com/connectors](https://grok.com/connectors) |
-| **B. Local stdio** | Developers | Clone, build, Service Account on the machine |
-| **C. Skill only** | Method / docs | Installs workflows, **no live data** until A or B |
+| Client | Best path | Guide |
+|--------|-----------|-------|
+| **Grok** | Custom Connector (HTTPS) or Grok Build (stdio) | [docs/GROK_SETUP.md](docs/GROK_SETUP.md) |
+| **Claude** | `.mcp.json` (this repo) + skill in `.claude/skills/` | [docs/CLAUDE_SETUP.md](docs/CLAUDE_SETUP.md) |
+| **Codex** | MCP settings + skill in `.codex/skills/` | [docs/CODEX_SETUP.md](docs/CODEX_SETUP.md) |
 
-Recommended for a marketing team: Solution A, Service Account invited to GA4 / GTM / Search Console, optional PageSpeed and CrUX API keys, then a test prompt such as “List my GA4 properties”.
+Install the skill for Claude and Codex:
 
-Step-by-step: [`skills/ga-to-grok/references/setup.md`](skills/ga-to-grok/references/setup.md) · [docs/GROK_SETUP.md](docs/GROK_SETUP.md)
+```bash
+./scripts/install-skill.sh both          # copy into .claude and .codex
+./scripts/install-skill.sh claude --link # symlink
+./scripts/install-skill.sh codex --user  # user-wide
+```
+
+Recommended for a marketing team: deploy the server once (HTTPS), invite the Service Account to GA4 / GTM / Search Console, add optional PageSpeed and CrUX keys, then connect the client of your choice.
+
+Step-by-step: [`skills/ga-to-grok/references/setup.md`](skills/ga-to-grok/references/setup.md)
 
 ---
 
@@ -181,37 +196,45 @@ npm run build
 
 ---
 
-## 3. Grok Build packaging (ready out of the box)
+## 3. Client packaging
 
 | File | Role |
 |------|------|
-| `.grok/config.toml` | Project-scoped MCP server (`ga-to-grok`) |
-| `.mcp.json` | Claude Code / Cursor / Grok compatibility |
-| `.grok/plugins/ga-to-grok/` | Plugin stub |
+| `.grok/config.toml` | Grok Build MCP server |
+| `.mcp.json` | Claude Code / Cursor / Codex local stdio |
 | `skills/ga-to-grok/` | Shared skill (Agensi, Claude, Codex) |
-| `docs/GROK_BUILD.md` | Full packaging guide |
+| `skills/ga-to-grok/agents/openai.yaml` | Codex display metadata |
+| `scripts/install-skill.sh` | Copies the skill into `.claude` and `.codex` |
+| `docs/CLAUDE_SETUP.md` | Anthropic Claude Code |
+| `docs/CODEX_SETUP.md` | OpenAI Codex |
+| `docs/GROK_SETUP.md` | Grok connectors + Build |
 
-### Local (stdio)
+### Grok
 
 ```bash
-npm run build
-export GOOGLE_APPLICATION_CREDENTIALS=/path/to/sa.json
 grok mcp add --scope project ga-to-grok -- node dist/index.js --transport stdio
-```
-
-### Remote HTTP
-
-```bash
+# or remote
 grok mcp add --transport http ga-to-grok https://your-host.example.com/mcp
 ```
 
-### grok.com Connectors
+Or [grok.com/connectors](https://grok.com/connectors) → New Connector → Custom → `https://your-server.com/mcp`.
 
-1. Deploy with `TRANSPORT=http` + public HTTPS
-2. [grok.com/connectors](https://grok.com/connectors) → **New Connector → Custom**
-3. URL: `https://your-server.com/mcp` (or `/sse` for legacy clients)
+### Claude (Anthropic)
 
-Details: **[docs/GROK_BUILD.md](docs/GROK_BUILD.md)** · [docs/GROK_SETUP.md](docs/GROK_SETUP.md)
+```bash
+./scripts/install-skill.sh claude
+# MCP: this repo's .mcp.json after npm run build
+```
+
+Guide: [docs/CLAUDE_SETUP.md](docs/CLAUDE_SETUP.md)
+
+### Codex (OpenAI)
+
+```bash
+./scripts/install-skill.sh codex
+```
+
+Guide: [docs/CODEX_SETUP.md](docs/CODEX_SETUP.md)
 
 ---
 
@@ -231,17 +254,9 @@ Canonical skill: `skills/ga-to-grok/` (`SKILL.md` + `references/`).
 
 | Agent | Install path | Guide |
 |-------|----------------|-------|
-| Agensi | zip of `ga-to-grok/` | below |
+| Agensi / Grok | zip of `ga-to-grok/` | below |
 | Claude Code | `.claude/skills/ga-to-grok/` or `~/.claude/skills/ga-to-grok/` | [docs/CLAUDE_SETUP.md](docs/CLAUDE_SETUP.md) |
 | Codex | `.codex/skills/ga-to-grok/` or `~/.codex/skills/ga-to-grok/` | [docs/CODEX_SETUP.md](docs/CODEX_SETUP.md) |
-
-Install into this repo:
-
-```bash
-./scripts/install-skill.sh both          # copy into .claude and .codex
-./scripts/install-skill.sh claude --link # symlink
-./scripts/install-skill.sh codex --user  # user-wide
-```
 
 The skill does not replace MCP. Connect the server (stdio or HTTPS) or the agent will refuse to invent numbers.
 
@@ -254,8 +269,6 @@ ga-to-grok/
   references/
 ```
 
-Codex metadata: `skills/ga-to-grok/agents/openai.yaml`.
-
 ---
 
 ## 6. CLI — full validation workflow
@@ -263,8 +276,9 @@ Codex metadata: `skills/ga-to-grok/agents/openai.yaml`.
 ```bash
 npm run cli -- help
 npm run cli -- list-properties
+npm run cli -- list-search-sites
+npm run cli -- pagespeed --url https://example.com/
 npm run cli -- audit-web --account WEB --container WEB --property 123
-npm run cli -- cutover-checklist ...
 ```
 
 Full reference: [docs/CLI.md](docs/CLI.md)
@@ -360,13 +374,13 @@ npm run typecheck
 
 | Doc | Content |
 |-----|---------|
-| **[skills/ga-to-grok/SKILL.md](skills/ga-to-grok/SKILL.md)** | **Agent skill (marketer workflows)** |
-| **[docs/CLAUDE_SETUP.md](docs/CLAUDE_SETUP.md)** | **Claude Code skill install** |
-| **[docs/CODEX_SETUP.md](docs/CODEX_SETUP.md)** | **Codex skill install** |
+| **[skills/ga-to-grok/SKILL.md](skills/ga-to-grok/SKILL.md)** | **Shared agent skill** |
+| **[docs/CLAUDE_SETUP.md](docs/CLAUDE_SETUP.md)** | **Anthropic Claude Code** |
+| **[docs/CODEX_SETUP.md](docs/CODEX_SETUP.md)** | **OpenAI Codex** |
+| **[docs/GROK_SETUP.md](docs/GROK_SETUP.md)** | **Grok connectors + Build** |
 | [skills/ga-to-grok/references/setup.md](skills/ga-to-grok/references/setup.md) | Connect — 3 solutions |
 | [PRESENTATION.md](docs/PRESENTATION.md) | Pitch & marketing guide |
 | [GROK_BUILD.md](docs/GROK_BUILD.md) | Grok Build packaging |
-| [GROK_SETUP.md](docs/GROK_SETUP.md) | Connectors + Build overview |
 | [DEPLOYMENT.md](docs/DEPLOYMENT.md) | Docker / Fly / Railway |
 | [CLI.md](docs/CLI.md) | All CLI commands |
 | [CI_CD.md](docs/CI_CD.md) | GitHub Actions |
@@ -381,16 +395,19 @@ npm run typecheck
 ## 11. Project layout
 
 ```text
-.grok/config.toml
-.mcp.json
+.grok/config.toml           # Grok Build
+.mcp.json                   # Claude / Cursor / Codex local stdio
 skills/ga-to-grok/          # shared skill (Agensi, Claude, Codex)
-  agents/openai.yaml      # Codex appearance metadata
-scripts/install-skill.sh  # copies skill into .claude / .codex
+  agents/openai.yaml        # Codex appearance metadata
+scripts/install-skill.sh    # copies skill into .claude / .codex
 src/
-  google/                 # data-api, gtm, search-console, indexing, pagespeed, crux
-  tools/                  # tool definitions + zod schemas
+  google/                   # data-api, gtm, search-console, indexing, pagespeed, crux
+  tools/                    # tool definitions + zod schemas
   auth/ cache/ utils/
 docs/
+  CLAUDE_SETUP.md
+  CODEX_SETUP.md
+  GROK_SETUP.md
 ```
 
 ---
@@ -401,4 +418,4 @@ Apache-2.0
 
 ---
 
-Built for the Grok ecosystem by [Geoking2104](https://github.com/Geoking2104) / **KayrosLab**
+Built by [Geoking2104](https://github.com/Geoking2104) / **KayrosLab** for Grok, Claude, and Codex.
