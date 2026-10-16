@@ -1,4 +1,4 @@
-# GA-to-Grok — project-scoped MCP for Grok Build
+# Google Growth — project-scoped MCP for Grok Build
 # https://github.com/Geoking2104/GA-to-Grok
 #
 # Load order: Grok walks from cwd up to git root and reads each .grok/config.toml
@@ -17,7 +17,7 @@
 # Hosted/deployed option: point Grok Connectors or the Remote MCP Tools API at the
 # public HTTPS URL (https://<host>/mcp) with header: Authorization: Bearer <MCP_API_TOKEN>.
 
-[mcp_servers.ga-to-grok]
+[mcp_servers.google-growth]
 command = "node"
 args = ["dist/index.js", "--transport", "stdio"]
 startup_timeout_sec = 45
