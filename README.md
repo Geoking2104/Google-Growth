@@ -47,6 +47,28 @@ The agent-facing method lives in [`skills/ga-to-grok/`](skills/ga-to-grok/) (sam
 
 ---
 
+## Architecture (high level)
+
+```text
+                    ┌────────────────────┐
+                    │   Grok / Agents     │
+                    │  (MCP tools + CLI)  │
+                    └──────────┬──────────┘
+                                │ STDIO or HTTP (Streamable /mcp + /sse)
+                               ▼
+                    ┌─────────────────────┐
+                    │    GA-to-Grok       │
+                    │  Service Account    │
+                    └──────────┬──────────┘
+     ┌──────────────────────┼──────────────────────┐
+     ▼                   ▼                   ▼
+ GA4 Data/Admin      GTM Web + sGTM      Search Console
+ + MP secrets        tags / clients      + Indexing API
+                                         + PageSpeed / CrUX
+```
+
+---
+
 ## Connect — three solutions
 
 | Solution | Best for | What you need |
@@ -61,13 +83,155 @@ Step-by-step: [`skills/ga-to-grok/references/setup.md`](skills/ga-to-grok/refere
 
 ---
 
+## 1. Prerequisites
+
+1. **Google Cloud project** with APIs enabled:
+   - Google Analytics Data API
+   - Google Analytics Admin API
+   - Tag Manager API
+   - Search Console API (for SEO tools)
+2. **Service Account** JSON key
+3. Grant the SA email:
+   - GA4 property: **Viewer** (or Editor if you create MP secrets)
+   - GTM accounts: **Read** (or **Edit** for Phase 3 tag creation)
+   - Search Console property: user with access (write if submitting sitemaps)
+4. Optional API keys for performance tools (`PAGESPEED_API_KEY`, `CRUX_API_KEY`, or `GOOGLE_API_KEY`)
+5. Node.js **≥ 20**
+
+### Scopes used
+
+```text
+analytics.readonly
+analytics.edit                    # MP secret creation
+tagmanager.readonly
+tagmanager.edit.containers        # Phase 3 GTM writes
+webmasters.readonly               # Search Console read
+webmasters                        # sitemap submit (gated)
+indexing                          # Indexing API (gated)
+```
+
+Writes are gated by `confirm=true`, optional `dryRun`, and env flags (all **disabled by default**):
+
+```bash
+GA4_WRITE_ENABLED=true
+GTM_WRITE_ENABLED=true
+SEARCH_CONSOLE_WRITE_ENABLED=true
+INDEXING_WRITE_ENABLED=true
+```
+
+### Reliability & safety features
+
+- **Input validation (zod):** every tool validates its arguments. Invalid arguments are rejected before any Google API call.
+- **Enriched errors:** Google failures surface `status` + `reason` (e.g. `[status 403 | permissionDenied]`).
+- **Retry & pagination:** gaxios retries on 429/5xx; `run_report` paginates past GA4's row cap.
+- **HTTP auth:** set `MCP_API_TOKEN` on any remote deployment; clients send `Authorization: Bearer <token>`.
+- **Logging:** `LOG_LEVEL` (`debug` | `info` | `warn` | `error`). Logs stay on stderr so STDIO keeps stdout for MCP.
+
+---
+
+## 2. Install & configure
+
+```bash
+git clone https://github.com/Geoking2104/GA-to-Grok.git
+cd GA-to-Grok
+npm install
+cp .env.example .env
+```
+
+Edit `.env`:
+
+```bash
+# Auth (pick one)
+GOOGLE_APPLICATION_CREDENTIALS=/absolute/path/to/sa.json
+# or
+GOOGLE_CREDENTIALS_JSON='{"type":"service_account",...}'
+
+# Optional defaults
+GA4_PROPERTY_ID=123456789
+
+# Transport
+TRANSPORT=stdio          # or http
+PORT=3000
+
+# Optional performance keys
+PAGESPEED_API_KEY=
+CRUX_API_KEY=
+# or GOOGLE_API_KEY=
+
+# Optional Redis
+REDIS_URL=redis://localhost:6379
+
+# Optional HTTP auth (recommended for any remote/public deployment).
+# MCP_API_TOKEN=change-me-to-a-long-random-string
+
+LOG_LEVEL=info
+
+# Safety: writes DISABLED by default.
+GA4_WRITE_ENABLED=false
+GTM_WRITE_ENABLED=false
+SEARCH_CONSOLE_WRITE_ENABLED=false
+INDEXING_WRITE_ENABLED=false
+```
+
+Build:
+
+```bash
+npm run build
+```
+
+---
+
+## 3. Grok Build packaging (ready out of the box)
+
+| File | Role |
+|------|------|
+| `.grok/config.toml` | Project-scoped MCP server (`ga-to-grok`) |
+| `.mcp.json` | Claude Code / Cursor / Grok compatibility |
+| `.grok/plugins/ga-to-grok/` | Plugin stub |
+| `skills/ga-to-grok/` | Shared skill (Agensi, Claude, Codex) |
+| `docs/GROK_BUILD.md` | Full packaging guide |
+
+### Local (stdio)
+
+```bash
+npm run build
+export GOOGLE_APPLICATION_CREDENTIALS=/path/to/sa.json
+grok mcp add --scope project ga-to-grok -- node dist/index.js --transport stdio
+```
+
+### Remote HTTP
+
+```bash
+grok mcp add --transport http ga-to-grok https://your-host.example.com/mcp
+```
+
+### grok.com Connectors
+
+1. Deploy with `TRANSPORT=http` + public HTTPS
+2. [grok.com/connectors](https://grok.com/connectors) → **New Connector → Custom**
+3. URL: `https://your-server.com/mcp` (or `/sse` for legacy clients)
+
+Details: **[docs/GROK_BUILD.md](docs/GROK_BUILD.md)** · [docs/GROK_SETUP.md](docs/GROK_SETUP.md)
+
+---
+
+## 4. Run the MCP server
+
+```bash
+npm run start:stdio          # local
+npm run start:http           # http://localhost:3000/mcp  and  /sse
+docker compose up -d         # see docs/DEPLOYMENT.md
+```
+
+---
+
 ## 5. Skill for Agensi, Claude, and Codex
 
 Canonical skill: `skills/ga-to-grok/` (`SKILL.md` + `references/`).
 
 | Agent | Install path | Guide |
 |-------|----------------|-------|
-| Agensi | zip of `ga-to-grok/` | see below |
+| Agensi | zip of `ga-to-grok/` | below |
 | Claude Code | `.claude/skills/ga-to-grok/` or `~/.claude/skills/ga-to-grok/` | [docs/CLAUDE_SETUP.md](docs/CLAUDE_SETUP.md) |
 | Codex | `.codex/skills/ga-to-grok/` or `~/.codex/skills/ga-to-grok/` | [docs/CODEX_SETUP.md](docs/CODEX_SETUP.md) |
 
@@ -90,13 +254,151 @@ ga-to-grok/
   references/
 ```
 
+Codex metadata: `skills/ga-to-grok/agents/openai.yaml`.
+
 ---
 
-## Documentation index (skill install)
+## 6. CLI — full validation workflow
+
+```bash
+npm run cli -- help
+npm run cli -- list-properties
+npm run cli -- audit-web --account WEB --container WEB --property 123
+npm run cli -- cutover-checklist ...
+```
+
+Full reference: [docs/CLI.md](docs/CLI.md)
+
+---
+
+## 7. Main MCP tools
+
+### GA4
+
+| Tool | Description |
+|------|-------------|
+| `list_properties` / `get_property_details` | Discovery |
+| `get_traffic_overview` | Users, sessions, bounce rate… |
+| `get_top_pages` / `get_acquisition` / `get_devices` | Breakdowns |
+| `get_events_summary` / `run_report` / `run_realtime_report` | Events & reports |
+| `analyze_ecommerce_data` | Funnel, revenue, AOV, data quality |
+
+### GTM Web / sGTM / MP
+
+| Tool | Description |
+|------|-------------|
+| `audit_ga4_setup_v2` | Full audit + optional live GA4 |
+| `validate_ecommerce_events` | Official ecommerce schema |
+| `create_ga4_event_setup` | Phase 3 write (confirm required) |
+| `audit_sgtm_setup` / `compare_dual_tagging` / `cutover_checklist` | Server-side path |
+| `verify_ga4_secrets` / `configure_measurement_protocol` | Secrets & setup |
+
+### Search Console
+
+| Tool | Description |
+|------|-------------|
+| `list_search_console_sites` / `get_search_console_site` | Properties |
+| `list_sitemaps` / `get_sitemap` / `submit_sitemap` | Sitemaps (submit is gated) |
+| `get_search_overview` / `get_top_queries` / `get_top_search_pages` | Performance |
+| `get_query_page_pairs` / `get_search_by_device` / `get_search_by_country` / `get_search_trend` | Breakdowns |
+| `inspect_url` / `inspect_urls` | Index status |
+
+### Indexing API
+
+| Tool | Description |
+|------|-------------|
+| `get_url_notification_metadata` | Last notify status |
+| `publish_url_notification` / `publish_url_notifications` | URL_UPDATED / URL_DELETED (gated) |
+
+### PageSpeed & CrUX
+
+| Tool | Description |
+|------|-------------|
+| `run_pagespeed` / `run_pagespeed_batch` | Lighthouse lab scores |
+| `query_crux` / `query_crux_batch` | Real-user Core Web Vitals |
+
+Full catalog for agents: [`skills/ga-to-grok/references/tools.md`](skills/ga-to-grok/references/tools.md)
+
+---
+
+## 8. Standard workflows
+
+### Weekly analytics briefing
+
+`list_properties` → `get_traffic_overview` → acquisition / pages / devices → events → ecommerce if relevant.
+
+### SEO & performance audit
+
+`list_search_console_sites` → `get_top_search_pages` → `query_crux` → `run_pagespeed` → optional `inspect_url` → priority table + 3–5 actions.
+
+### Server-side tracking / cutover
+
+See [docs/SERVER_SIDE_TRACKING_ARCHITECTURE.md](docs/SERVER_SIDE_TRACKING_ARCHITECTURE.md).
+
+Example report shapes: [`skills/ga-to-grok/references/examples.md`](skills/ga-to-grok/references/examples.md)
+
+---
+
+## 9. CI/CD
+
+| Workflow | When | What |
+|----------|------|------|
+| **CI** | push / PR | typecheck + lint + test + build + CLI smoke |
+| **Validate** | manual (+ optional weekly cron) | live pipeline with SA secret |
+
+```bash
+npm run lint
+npm test
+npm run typecheck
+```
+
+→ [docs/CI_CD.md](docs/CI_CD.md)
+
+---
+
+## 10. Documentation index
 
 | Doc | Content |
 |-----|---------|
-| [docs/CLAUDE_SETUP.md](docs/CLAUDE_SETUP.md) | Claude Code skill + MCP |
-| [docs/CODEX_SETUP.md](docs/CODEX_SETUP.md) | Codex skill + MCP |
-| [skills/ga-to-grok/SKILL.md](skills/ga-to-grok/SKILL.md) | Agent skill |
-| [docs/GROK_SETUP.md](docs/GROK_SETUP.md) | Grok connectors |
+| **[skills/ga-to-grok/SKILL.md](skills/ga-to-grok/SKILL.md)** | **Agent skill (marketer workflows)** |
+| **[docs/CLAUDE_SETUP.md](docs/CLAUDE_SETUP.md)** | **Claude Code skill install** |
+| **[docs/CODEX_SETUP.md](docs/CODEX_SETUP.md)** | **Codex skill install** |
+| [skills/ga-to-grok/references/setup.md](skills/ga-to-grok/references/setup.md) | Connect — 3 solutions |
+| [PRESENTATION.md](docs/PRESENTATION.md) | Pitch & marketing guide |
+| [GROK_BUILD.md](docs/GROK_BUILD.md) | Grok Build packaging |
+| [GROK_SETUP.md](docs/GROK_SETUP.md) | Connectors + Build overview |
+| [DEPLOYMENT.md](docs/DEPLOYMENT.md) | Docker / Fly / Railway |
+| [CLI.md](docs/CLI.md) | All CLI commands |
+| [CI_CD.md](docs/CI_CD.md) | GitHub Actions |
+| [GTM_INTEGRATION.md](docs/GTM_INTEGRATION.md) | GTM ↔ GA4 specs |
+| [PHASE3_WRITE.md](docs/PHASE3_WRITE.md) | Controlled GTM writes |
+| [MEASUREMENT_PROTOCOL.md](docs/MEASUREMENT_PROTOCOL.md) | MP setup |
+| [SERVER_SIDE_TRACKING_ARCHITECTURE.md](docs/SERVER_SIDE_TRACKING_ARCHITECTURE.md) | sGTM architecture |
+| [CACHING.md](docs/CACHING.md) | Redis |
+
+---
+
+## 11. Project layout
+
+```text
+.grok/config.toml
+.mcp.json
+skills/ga-to-grok/          # shared skill (Agensi, Claude, Codex)
+  agents/openai.yaml      # Codex appearance metadata
+scripts/install-skill.sh  # copies skill into .claude / .codex
+src/
+  google/                 # data-api, gtm, search-console, indexing, pagespeed, crux
+  tools/                  # tool definitions + zod schemas
+  auth/ cache/ utils/
+docs/
+```
+
+---
+
+## License
+
+Apache-2.0
+
+---
+
+Built for the Grok ecosystem by [Geoking2104](https://github.com/Geoking2104) / **KayrosLab**
