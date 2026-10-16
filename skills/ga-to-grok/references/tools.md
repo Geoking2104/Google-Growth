@@ -86,7 +86,7 @@ All require `confirm=true` to execute. Prefer `dryRun=true` first. Do not publis
 
 `mode` on MP helpers is typically `direct`, `sgtm`, or `both`.
 
-## Search Console — site & indexing
+## Search Console — site, indexing & performance
 
 | Tool | Typical args | Notes |
 |---|---|---|
@@ -95,11 +95,20 @@ All require `confirm=true` to execute. Prefer `dryRun=true` first. Do not publis
 | `list_sitemaps` | siteUrl | All submitted sitemaps + status |
 | `get_sitemap` | siteUrl, feedpath | One sitemap details |
 | `submit_sitemap` | siteUrl, feedpath, dryRun?, confirm? | WRITE — gated |
+| `get_search_overview` | siteUrl, dates?, type? | Totals (no query/page dims) |
+| `get_top_queries` | siteUrl, dates?, limit?, type? | Top search queries |
+| `get_top_search_pages` | siteUrl, dates?, limit?, type? | Top landing pages |
+| `get_query_page_pairs` | siteUrl, dates?, limit?, type? | query × page |
+| `get_search_by_device` | siteUrl, dates?, type? | DESKTOP / MOBILE / TABLET |
+| `get_search_by_country` | siteUrl, dates?, limit?, type? | |
+| `get_search_trend` | siteUrl, dates?, type? | Daily |
+| `run_search_analytics` | siteUrl, dimensions?, filters? | Flexible — prefer specialized |
 | `inspect_url` | siteUrl, inspectionUrl, languageCode? | Index status of one URL |
 | `inspect_urls` | siteUrl, inspectionUrls[] | Batch inspection (keep ≤ 10–20) |
 
 `siteUrl` must be copied exactly from `list_search_console_sites` (trailing slash for URL-prefix, or `sc-domain:example.com`).
-`inspectionUrl` must belong to that property.
+Dates: `YYYY-MM-DD` or relative (`28daysAgo`, `7daysAgo`). Default end date accounts for the ~2–3 day data lag.
+`type` on Search Analytics tools is typically `web`, `image`, `video`, `news`, `discover`, or `googleNews`.
 
 ### submit_sitemap safety
 
