@@ -1,6 +1,6 @@
 # GA-to-Grok MCP tools
 
-Unprefixed names as registered by the server. Grok may prefix them (`ga-to-grok__…`). Always `grok-mcp ls` first.
+Unprefixed names as registered by the server. Agents usually prefix them (examples: `ga-to-grok__…` or a custom connector name). Always discover tools in the current agent first.
 
 Common ids
 
@@ -85,7 +85,14 @@ All require `confirm=true` to execute. Prefer `dryRun=true` first. Do not publis
 
 `mode` on MP helpers is typically `direct`, `sgtm`, or `both`.
 
-## CLI twin (same repo, outside Grok)
+## Common error patterns
+
+- **403 / permissionDenied** — Service Account not invited to the property or GTM account. Grant Viewer (Editor for writes).
+- **Writes disabled** — Server has `GA4_WRITE_ENABLED` or `GTM_WRITE_ENABLED` unset or false. Do not retry with `confirm=true`.
+- **Invalid arguments** — Zod validation failed. Check the error message for the exact field.
+- **Empty / truncated results** — Widen the date range or raise `limit`. Large reports are paginated automatically on `run_report`.
+
+## CLI twin (same repo, outside the agent)
 
 ```
 npm run cli -- list-properties
