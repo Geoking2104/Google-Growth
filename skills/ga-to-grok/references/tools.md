@@ -94,16 +94,24 @@ All require `confirm=true` to execute. Prefer `dryRun=true` first. Do not publis
 | `get_search_console_site` | siteUrl | Property details / permission |
 | `list_sitemaps` | siteUrl | All submitted sitemaps + status |
 | `get_sitemap` | siteUrl, feedpath | One sitemap details |
+| `submit_sitemap` | siteUrl, feedpath, dryRun?, confirm? | WRITE — gated |
 | `inspect_url` | siteUrl, inspectionUrl, languageCode? | Index status of one URL |
 | `inspect_urls` | siteUrl, inspectionUrls[] | Batch inspection (keep ≤ 10–20) |
 
 `siteUrl` must be copied exactly from `list_search_console_sites` (trailing slash for URL-prefix, or `sc-domain:example.com`).
 `inspectionUrl` must belong to that property.
 
+### submit_sitemap safety
+
+- Requires `SEARCH_CONSOLE_WRITE_ENABLED=true` on the server.
+- Requires `confirm=true` to execute.
+- Always run `dryRun=true` first and show the preview.
+- Service Account needs the full `webmasters` scope and write access on the property.
+
 ## Common error patterns
 
 - **403 / permissionDenied** — Service Account not invited to the property, GTM account, or Search Console site. Grant the appropriate access.
-- **Writes disabled** — Server has `GA4_WRITE_ENABLED` or `GTM_WRITE_ENABLED` unset or false. Do not retry with `confirm=true`.
+- **Writes disabled** — Server has `GA4_WRITE_ENABLED`, `GTM_WRITE_ENABLED`, or `SEARCH_CONSOLE_WRITE_ENABLED` unset or false. Do not retry with `confirm=true`.
 - **Invalid arguments** — Zod validation failed. Check the error message for the exact field.
 - **Empty / truncated results** — Widen the date range or raise `limit`. Large reports are paginated automatically on `run_report`.
 - **Search Console siteUrl mismatch** — Use the exact string returned by `list_search_console_sites`.
