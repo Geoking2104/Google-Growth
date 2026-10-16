@@ -24,11 +24,12 @@ function getVersion(): string {
 }
 
 const VERSION = getVersion();
+const SERVER_NAME = "google-growth";
 
 function createMcpServer() {
   const server = new Server(
     {
-      name: "ga-to-grok",
+      name: SERVER_NAME,
       version: VERSION,
     },
     {
@@ -78,7 +79,7 @@ export async function startServer(transportType: "stdio" | "http" = "stdio") {
   if (transportType === "stdio") {
     const transport = new StdioServerTransport();
     await server.connect(transport);
-    logger.info("GA-to-Grok MCP server running on STDIO");
+    logger.info("google-growth MCP server running on STDIO");
     return;
   }
 
@@ -100,7 +101,7 @@ export async function startServer(transportType: "stdio" | "http" = "stdio") {
   // Health / info (no auth — status only)
   app.get("/", (_req, res) => {
     res.json({
-      name: "ga-to-grok",
+      name: SERVER_NAME,
       version: VERSION,
       status: "ok",
       transport: "http",
@@ -211,18 +212,17 @@ export async function startServer(transportType: "stdio" | "http" = "stdio") {
 
   // Graceful shutdown
   const httpServer = app.listen(port, host, () => {
-    logger.info(`GA-to-Grok MCP server running on http://${host}:${port}`);
+    logger.info(`google-growth MCP server running on http://${host}:${port}`);
     logger.info(`Streamable HTTP endpoint → http://${host}:${port}/mcp`);
     logger.info(`SSE endpoint (legacy)    → http://${host}:${port}/sse`);
     logger.info(`Messages endpoint        → http://${host}:${port}/messages`);
-    logger.info(`Ready for Grok Custom Connector`);
+    logger.info(`Ready for custom MCP connectors`);
   });
 
   const shutdown = () => {
     logger.info("[server] Shutting down...");
     sessions.clear();
     httpServer.close(() => process.exit(0));
-    // Hard timeout if connections never drain.
     setTimeout(() => process.exit(0), 5000).unref();
   };
   process.on("SIGTERM", shutdown);
