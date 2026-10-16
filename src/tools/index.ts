@@ -15,6 +15,7 @@ import { customEventTools } from "./custom-events.js";
 import { gtmWriteTools } from "./gtm-write.js";
 import { sgtmTools } from "./sgtm.js";
 import { mpSecretsTools } from "./mp-secrets.js";
+import { searchConsoleTools } from "./search-console.js";
 import { success, fail } from "./response.js";
 import {
   accountId,
@@ -193,6 +194,7 @@ export const tools: ToolDefinition[] = [
   ...gtmWriteTools,
   ...sgtmTools,
   ...mpSecretsTools,
+  ...searchConsoleTools,
 ];
 
 export async function handleToolCall(name: string, args: Record<string, any>) {
