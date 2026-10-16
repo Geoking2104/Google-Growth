@@ -108,10 +108,30 @@ All require `confirm=true` to execute. Prefer `dryRun=true` first. Do not publis
 - Always run `dryRun=true` first and show the preview.
 - Service Account needs the full `webmasters` scope and write access on the property.
 
+## Google Indexing API
+
+Notify Google that individual URLs were updated or deleted. Officially intended for job postings and livestream structured data; other uses may be limited by Google.
+
+| Tool | Typical args | Notes |
+|---|---|---|
+| `get_url_notification_metadata` | url | Read-only — last notify time |
+| `publish_url_notification` | url, type, dryRun?, confirm? | WRITE — gated |
+| `publish_url_notifications` | notifications[{url,type}], dryRun?, confirm? | Batch write — gated |
+
+`type` is `URL_UPDATED` or `URL_DELETED`.
+
+### Indexing API safety
+
+- Requires `INDEXING_WRITE_ENABLED=true` on the server.
+- Requires `confirm=true` to execute.
+- Always run `dryRun=true` first.
+- Service Account needs the `indexing` scope.
+- The URL must be owned by the publisher and crawlable for `URL_UPDATED`.
+
 ## Common error patterns
 
-- **403 / permissionDenied** — Service Account not invited to the property, GTM account, or Search Console site. Grant the appropriate access.
-- **Writes disabled** — Server has `GA4_WRITE_ENABLED`, `GTM_WRITE_ENABLED`, or `SEARCH_CONSOLE_WRITE_ENABLED` unset or false. Do not retry with `confirm=true`.
+- **403 / permissionDenied** — Service Account not invited to the property, GTM account, Search Console site, or missing Indexing API scope. Grant the appropriate access.
+- **Writes disabled** — Server has `GA4_WRITE_ENABLED`, `GTM_WRITE_ENABLED`, `SEARCH_CONSOLE_WRITE_ENABLED`, or `INDEXING_WRITE_ENABLED` unset or false. Do not retry with `confirm=true`.
 - **Invalid arguments** — Zod validation failed. Check the error message for the exact field.
 - **Empty / truncated results** — Widen the date range or raise `limit`. Large reports are paginated automatically on `run_report`.
 - **Search Console siteUrl mismatch** — Use the exact string returned by `list_search_console_sites`.
