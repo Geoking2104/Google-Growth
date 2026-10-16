@@ -137,6 +137,21 @@ Notify Google that individual URLs were updated or deleted. Officially intended 
 - Service Account needs the `indexing` scope.
 - The URL must be owned by the publisher and crawlable for `URL_UPDATED`.
 
+## PageSpeed Insights & CrUX
+
+Lab data (Lighthouse) and real-user Core Web Vitals. Optional API keys recommended for production.
+
+| Tool | Typical args | Notes |
+|---|---|---|
+| `run_pagespeed` | url, strategy?, categories?, locale? | Lighthouse scores + vitals |
+| `run_pagespeed_batch` | urls[], strategy?, categories? | Sequential — keep ≤ 5 |
+| `query_crux` | origin? or url?, formFactor?, metrics? | Real-user CrUX |
+| `query_crux_batch` | targets[{origin?|url?}], formFactor? | Keep ≤ 10 |
+
+`strategy` is `mobile` or `desktop` (default desktop for PageSpeed).
+`formFactor` is `PHONE`, `DESKTOP`, `TABLET`, or `ALL_FORM_FACTORS`.
+API keys: `PAGESPEED_API_KEY` / `CRUX_API_KEY` or shared `GOOGLE_API_KEY`.
+
 ## Common error patterns
 
 - **403 / permissionDenied** — Service Account not invited to the property, GTM account, Search Console site, or missing Indexing API scope. Grant the appropriate access.
@@ -144,6 +159,7 @@ Notify Google that individual URLs were updated or deleted. Officially intended 
 - **Invalid arguments** — Zod validation failed. Check the error message for the exact field.
 - **Empty / truncated results** — Widen the date range or raise `limit`. Large reports are paginated automatically on `run_report`.
 - **Search Console siteUrl mismatch** — Use the exact string returned by `list_search_console_sites`.
+- **PageSpeed / CrUX 429** — Rate limit. Add an API key and reduce batch size.
 
 ## CLI twin (same repo, outside the agent)
 
