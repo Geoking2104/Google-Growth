@@ -5,6 +5,7 @@ import {
   listSitemaps,
   getSitemap,
   submitSitemap,
+  querySearchAnalytics,
   inspectUrl,
 } from "../google/search-console.js";
 import { success, fail } from "./response.js";
@@ -16,6 +17,17 @@ const siteUrl = z
   .describe(
     "Exact Search Console property identifier (copy from list_search_console_sites). Example: https://example.com/ or sc-domain:example.com"
   );
+
+const dateStr = z
+  .string()
+  .optional()
+  .describe("YYYY-MM-DD or relative (28daysAgo, 7daysAgo, yesterday)");
+
+const rowLimit = z.number().int().min(1).max(25000).optional();
+
+const searchType = z
+  .enum(["web", "image", "video", "news", "discover", "googleNews"])
+  .optional();
 
 function assertSearchConsoleWriteEnabled() {
   if (process.env.SEARCH_CONSOLE_WRITE_ENABLED !== "true") {
@@ -123,6 +135,264 @@ export const searchConsoleTools = [
         assertSearchConsoleWriteEnabled();
         const result = await submitSitemap(args.siteUrl, args.feedpath);
         return success(result);
+      } catch (err) {
+        return fail(err);
+      }
+    },
+  },
+
+  // ─── Search Analytics (performance) ─────────────────────────────
+  {
+    name: "get_search_overview",
+    description:
+      "Search Console totals (clicks, impressions, CTR, average position). No query/page dimensions for more complete counts.",
+    schema: strict({
+      siteUrl,
+      startDate: dateStr,
+      endDate: dateStr,
+      type: searchType,
+    }),
+    handler: async (args: any) => {
+      try {
+        const startDate = args.startDate || "28daysAgo";
+        const endDate = args.endDate || "3daysAgo";
+        const result = await querySearchAnalytics({
+          siteUrl: args.siteUrl,
+          startDate,
+          endDate,
+          type: args.type,
+          dimensions: [],
+          rowLimit: 1,
+        });
+        return success({
+          siteUrl: args.siteUrl,
+          period: { startDate, endDate },
+          totals: result.rows[0] || {},
+        });
+      } catch (err) {
+        return fail(err);
+      }
+    },
+  },
+  {
+    name: "get_top_queries",
+    description: "Top search queries by clicks/impressions.",
+    schema: strict({
+      siteUrl,
+      startDate: dateStr,
+      endDate: dateStr,
+      limit: rowLimit,
+      type: searchType,
+    }),
+    handler: async (args: any) => {
+      try {
+        const startDate = args.startDate || "28daysAgo";
+        const endDate = args.endDate || "3daysAgo";
+        const result = await querySearchAnalytics({
+          siteUrl: args.siteUrl,
+          startDate,
+          endDate,
+          dimensions: ["query"],
+          rowLimit: args.limit ?? 20,
+          type: args.type,
+        });
+        return success({
+          siteUrl: args.siteUrl,
+          period: { startDate, endDate },
+          queries: result.rows,
+        });
+      } catch (err) {
+        return fail(err);
+      }
+    },
+  },
+  {
+    name: "get_top_search_pages",
+    description: "Top landing pages in Google Search.",
+    schema: strict({
+      siteUrl,
+      startDate: dateStr,
+      endDate: dateStr,
+      limit: rowLimit,
+      type: searchType,
+    }),
+    handler: async (args: any) => {
+      try {
+        const startDate = args.startDate || "28daysAgo";
+        const endDate = args.endDate || "3daysAgo";
+        const result = await querySearchAnalytics({
+          siteUrl: args.siteUrl,
+          startDate,
+          endDate,
+          dimensions: ["page"],
+          rowLimit: args.limit ?? 20,
+          type: args.type,
+        });
+        return success({
+          siteUrl: args.siteUrl,
+          period: { startDate, endDate },
+          pages: result.rows,
+        });
+      } catch (err) {
+        return fail(err);
+      }
+    },
+  },
+  {
+    name: "get_query_page_pairs",
+    description: "Top query × page pairs.",
+    schema: strict({
+      siteUrl,
+      startDate: dateStr,
+      endDate: dateStr,
+      limit: rowLimit,
+      type: searchType,
+    }),
+    handler: async (args: any) => {
+      try {
+        const startDate = args.startDate || "28daysAgo";
+        const endDate = args.endDate || "3daysAgo";
+        const result = await querySearchAnalytics({
+          siteUrl: args.siteUrl,
+          startDate,
+          endDate,
+          dimensions: ["query", "page"],
+          rowLimit: args.limit ?? 50,
+          type: args.type,
+        });
+        return success({
+          siteUrl: args.siteUrl,
+          period: { startDate, endDate },
+          pairs: result.rows,
+        });
+      } catch (err) {
+        return fail(err);
+      }
+    },
+  },
+  {
+    name: "get_search_by_device",
+    description: "Search performance by device (DESKTOP, MOBILE, TABLET).",
+    schema: strict({
+      siteUrl,
+      startDate: dateStr,
+      endDate: dateStr,
+      type: searchType,
+    }),
+    handler: async (args: any) => {
+      try {
+        const startDate = args.startDate || "28daysAgo";
+        const endDate = args.endDate || "3daysAgo";
+        const result = await querySearchAnalytics({
+          siteUrl: args.siteUrl,
+          startDate,
+          endDate,
+          dimensions: ["device"],
+          rowLimit: 10,
+          type: args.type,
+        });
+        return success({
+          siteUrl: args.siteUrl,
+          period: { startDate, endDate },
+          devices: result.rows,
+        });
+      } catch (err) {
+        return fail(err);
+      }
+    },
+  },
+  {
+    name: "get_search_by_country",
+    description: "Search performance by country.",
+    schema: strict({
+      siteUrl,
+      startDate: dateStr,
+      endDate: dateStr,
+      limit: rowLimit,
+      type: searchType,
+    }),
+    handler: async (args: any) => {
+      try {
+        const startDate = args.startDate || "28daysAgo";
+        const endDate = args.endDate || "3daysAgo";
+        const result = await querySearchAnalytics({
+          siteUrl: args.siteUrl,
+          startDate,
+          endDate,
+          dimensions: ["country"],
+          rowLimit: args.limit ?? 20,
+          type: args.type,
+        });
+        return success({
+          siteUrl: args.siteUrl,
+          period: { startDate, endDate },
+          countries: result.rows,
+        });
+      } catch (err) {
+        return fail(err);
+      }
+    },
+  },
+  {
+    name: "get_search_trend",
+    description: "Daily Search Console trend.",
+    schema: strict({
+      siteUrl,
+      startDate: dateStr,
+      endDate: dateStr,
+      type: searchType,
+    }),
+    handler: async (args: any) => {
+      try {
+        const startDate = args.startDate || "28daysAgo";
+        const endDate = args.endDate || "3daysAgo";
+        const result = await querySearchAnalytics({
+          siteUrl: args.siteUrl,
+          startDate,
+          endDate,
+          dimensions: ["date"],
+          rowLimit: 100,
+          type: args.type,
+        });
+        return success({
+          siteUrl: args.siteUrl,
+          period: { startDate, endDate },
+          trend: result.rows,
+        });
+      } catch (err) {
+        return fail(err);
+      }
+    },
+  },
+  {
+    name: "run_search_analytics",
+    description:
+      "Flexible Search Analytics query. Prefer specialized tools when possible. Dimensions: query, page, country, device, date, searchAppearance.",
+    schema: strict({
+      siteUrl,
+      startDate: dateStr,
+      endDate: dateStr,
+      dimensions: z.array(z.string()).optional(),
+      type: searchType,
+      rowLimit,
+      startRow: z.number().int().min(0).optional(),
+      aggregationType: z.enum(["auto", "byPage", "byProperty"]).optional(),
+      dimensionFilterGroups: z.any().optional(),
+    }),
+    handler: async (args: any) => {
+      try {
+        const startDate = args.startDate || "28daysAgo";
+        const endDate = args.endDate || "3daysAgo";
+        const result = await querySearchAnalytics({
+          ...args,
+          startDate,
+          endDate,
+        });
+        return success({
+          siteUrl: args.siteUrl,
+          period: { startDate, endDate },
+          ...result,
+        });
       } catch (err) {
         return fail(err);
       }
