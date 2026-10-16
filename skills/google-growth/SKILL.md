@@ -1,8 +1,8 @@
 ---
 name: google-growth
-description: Use live Google Analytics 4, Tag Manager, Search Console, PageSpeed, and CrUX for growth briefings and SEO audits. Trigger on GA4, GTM, Search Console, PageSpeed, CrUX, ecommerce, traffic reports, SEO audits, or when the user mentions Google Growth or GA-to-Grok.
+description: Use live Google Analytics 4, Tag Manager, Search Console, PageSpeed, and CrUX for growth briefings and SEO audits. Trigger on GA4, GTM, Search Console, PageSpeed, CrUX, ecommerce, traffic reports, SEO audits, or when the user mentions Google Growth.
 license: Apache-2.0
-compatibility: Requires the GA-to-Grok MCP server (stdio or HTTPS). Works with Grok, Claude, and Codex.
+compatibility: Requires the google-growth MCP server (stdio or HTTPS). Works with Grok, Claude, and Codex.
 metadata:
   source: https://github.com/Geoking2104/GA-to-Grok
   version: "0.8.0"
@@ -21,11 +21,13 @@ external_urls:
 
 # Google Growth
 
-Work with **GA4 + GTM + Search Console + PageSpeed + CrUX** via the open-source MCP server https://github.com/Geoking2104/GA-to-Grok.
+Work with **GA4 + GTM + Search Console + PageSpeed + CrUX** via the **google-growth** MCP server.
+
+Source: https://github.com/Geoking2104/GA-to-Grok
 
 This skill is for marketers, growth teams, and agencies who want answers from live Google data — not from pasted screenshots. It works with Grok, Claude, and Codex.
 
-**Prerequisite:** The GA-to-Grok MCP server must be running and connected. The skill never stores credentials. If tools are missing, stop and explain setup (see `references/setup.md`). Do not invent metrics.
+**Prerequisite:** The `google-growth` MCP server must be running and connected. The skill never stores credentials. If tools are missing, stop and explain setup (see `references/setup.md`). Do not invent metrics.
 
 ## Why use this skill (vs a classic LLM)
 
@@ -48,7 +50,7 @@ This skill is for marketers, growth teams, and agencies who want answers from li
 
 ## First action every session
 
-1. Discover live MCP tools. Names vary by prefix (`ga-to-grok__…` or a custom connector name).
+1. Discover live MCP tools. Names vary by prefix (`google-growth__…` or a custom connector name).
    - Search for tools containing `ga4`, `gtm`, `search_console`, `pagespeed`, `crux`, `indexing`.
 2. If nothing matches, the MCP is not connected. Explain the shortest path in `references/setup.md`. Do not invent numbers.
 3. Call tools with the exact discovered name. Prefer business tools over raw `run_report`.
@@ -126,7 +128,7 @@ Recommended for a marketing team:
 1. One technical owner deploys the MCP (Path A).
 2. Service Account invited to GA4, GTM, and Search Console.
 3. Optional API keys for PageSpeed and CrUX.
-4. Connector added in Grok, Claude, or Codex.
+4. Connector named `google-growth` added in Grok, Claude, or Codex.
 5. Optional: a dedicated agent with the SEO audit workflow saved.
 
 Details — `references/setup.md`.
@@ -162,7 +164,7 @@ Writes (GTM tags, sitemap submit, Indexing API, MP secrets) are off by default.
 ## Source of truth
 
 Repo — https://github.com/Geoking2104/GA-to-Grok  
-MCP server name stays `ga-to-grok`. Skill name is `google-growth`.
+Skill name and MCP server name: `google-growth`.
 
 - Setup — `references/setup.md`
 - Tool catalog — `references/tools.md`
