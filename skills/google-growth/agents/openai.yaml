@@ -1,0 +1,9 @@
+interface:
+  display_name: "Google Growth"
+  short_description: "Live GA4, GTM, Search Console, PageSpeed, and CrUX for growth briefings."
+  default_prompt: "Give me a traffic briefing for the last 28 days."
+
+dependencies:
+  tools:
+    - type: mcp
+      value: ga-to-grok
