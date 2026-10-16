@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Install the Google Growth skill for Claude Code and/or Codex.
-# The MCP server stays named ga-to-grok.
+# MCP server name is google-growth.
 # Usage:
 #   ./scripts/install-skill.sh claude
 #   ./scripts/install-skill.sh codex
@@ -77,4 +77,4 @@ case "$TARGET" in
 esac
 
 echo "Done. Restart Claude Code / Codex if the skill does not appear."
-echo "MCP server name remains ga-to-grok. See docs/CLAUDE_SETUP.md and docs/CODEX_SETUP.md."
+echo "MCP server name is google-growth. See docs/CLAUDE_SETUP.md and docs/CODEX_SETUP.md."
