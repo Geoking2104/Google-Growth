@@ -4,31 +4,34 @@ description: Use Google Analytics 4, Google Tag Manager (web + server-side), and
 license: Apache-2.0
 metadata:
   source: https://github.com/Geoking2104/GA-to-Grok
-  version: "1.0"
+  version: "0.6.1"
 ---
 
 # GA-to-Grok
 
 Work with **GA4 + GTM web + sGTM + Measurement Protocol** via the open-source MCP server https://github.com/Geoking2104/GA-to-Grok.
 
-This skill does not replace Google credentials. It tells you how to discover tools, pick the right one, sequence audits, and stay safe on writes.
+**Prerequisite:** This skill only works when the GA-to-Grok MCP server is running and connected in the current agent (Custom Connector, local stdio, or equivalent). It does not replace Google credentials and never asks for or stores a Service Account private key. If the tools are not available, stop and explain setup — do not invent metrics.
 
 ## First action every session
 
-1. Discover live tools (names vary by connector prefix)
-   ```bash
-   grok-mcp ls --query "ga4"
-   grok-mcp ls --query "gtm"
-   grok-mcp ls --query "sgtm"
-   grok-mcp ls --query "measurement"
-   ```
-2. If nothing matches, the MCP is not connected. Explain setup (see `references/setup.md`) and do not invent numbers.
-3. Call tools with the exact name from `ls` (often `ga-to-grok__list_properties` or a Custom Connector name).
-   ```bash
-   grok-mcp call <exact_tool_name> '{"propertyId":"123456789","startDate":"7daysAgo","endDate":"today"}'
-   ```
+1. Discover live MCP tools in the current agent. Tool names vary by connector prefix (examples: `ga-to-grok__list_properties`, `ga4_list_properties`, or a custom connector name).
+   - In Grok Build: `grok-mcp ls --query "ga4"` (also try `gtm`, `sgtm`, `measurement`).
+   - In other agents: use the agent’s native MCP tool listing or search for tools containing `ga4`, `gtm`, `sgtm`, or `measurement`.
+2. If nothing matches, the MCP is not connected. Explain the shortest setup path (see `references/setup.md`) and do not invent numbers.
+3. Call tools with the exact name returned by discovery. Prefer the business tools listed below over raw `run_report` unless the user asks for custom dimensions or metrics.
 
-Never fabricate GA4 metrics. If a call fails (auth, 403, missing property), report the error and the next permission step.
+Never fabricate GA4 metrics. If a call fails, report the error and the next permission step (see common errors below).
+
+## Common errors
+
+| Symptom | Likely cause | Next step |
+|---|---|---|
+| 403 / permissionDenied | Service Account not invited to the GA4 property or GTM account | Ask the user to grant Viewer (or Editor for writes) on the property/account |
+| Missing property / invalid ID | Wrong or unset `propertyId` | Call `list_properties` first |
+| Writes blocked | `GA4_WRITE_ENABLED` or `GTM_WRITE_ENABLED` not set to `true` on the server | Tell the user the server flags are off; do not retry with `confirm=true` |
+| Tool not found | MCP not connected or wrong name | Re-run discovery; fall back to setup instructions |
+| Empty results | Date range too narrow, or property has no data | Widen dates or confirm the property has traffic |
 
 ## How to choose a tool
 
@@ -106,18 +109,30 @@ Rules
 - Never print a full MP `secretValue` in logs or shared docs. Tell the user it is shown once and must be stored in a secret manager.
 - Never request or echo the Service Account private key.
 
+## CLI fallback
+
+When the agent cannot call MCP tools (or for batch/ops), the same repo ships a CLI. From a checked-out clone:
+
+```bash
+npm run cli -- list-properties
+npm run cli -- audit-web --account WEB --container WEB --property 123
+npm run cli -- cutover-checklist ...
+```
+
+See repo `docs/CLI.md`.
+
 ## Answer style
 
 - Lead with the decision (healthy / broken / ready for dual-tagging / not ready).
 - Then 3–7 numbered actions.
 - Tables for metrics; call out data-quality warnings from ecommerce tools.
 - Match the user's language (French or English).
-- If MCP is missing, give the shortest path to connect (grok.com Custom Connector URL `/sse`, or local stdio from the repo) instead of guessing data.
+- If MCP is missing, give the shortest path to connect (Custom Connector with HTTPS `/mcp` or `/sse`, or local stdio) instead of guessing data.
 
 ## Source of truth
 
 Repo — https://github.com/Geoking2104/GA-to-Grok
 
-- Setup for Grok Build and grok.com connectors — `references/setup.md`
+- Setup for connectors and local MCP — `references/setup.md`
 - Full tool list and typical arguments — `references/tools.md`
 - sGTM dual-tagging / cutover — `references/sgtm.md`
