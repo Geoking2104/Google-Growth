@@ -69,8 +69,18 @@ Usage:
 ── Discovery ──────────────────────────────────────────
   list-properties
   list-sgtm
+  list-search-sites
   list-streams              --property <id>
   list-clients              --account <id> --container <id> --workspace <id>
+
+── Search Console ──────────────────────────────────
+  search-overview           --site <siteUrl> [--start <date>] [--end <date>]
+  top-queries               --site <siteUrl> [--limit <n>] [--start <date>] [--end <date>]
+  inspect-url               --site <siteUrl> --url <inspectionUrl>
+
+── Performance ────────────────────────────────────
+  pagespeed                 --url <url> [--strategy mobile|desktop]
+  crux                      (--origin <origin> | --url <url>) [--form-factor PHONE|DESKTOP|TABLET]
 
 ── Step 1 · Web audit ─────────────────────────────────
   audit-web                 --account <id> --container <id> [--workspace <id>] [--property <id>]
@@ -102,19 +112,19 @@ Usage:
   health                    --url <sgtm-base-or-health-url> [--timeout <ms>]
   observability             --url <sgtm-url> [--property <id>]
 
-── Analytics ──────────────────────────────────────────
+── Analytics ────────────────────────────────────────
   analyze-ecommerce         --property <id> [--start <date>] [--end <date>]
   traffic                   --property <id> [--start <date>] [--end <date>]
 
-── Server ─────────────────────────────────────────────
+── Server ───────────────────────────────────────────
   serve-http                Start MCP HTTP/SSE server
   serve-stdio               Start MCP STDIO server
 
 Examples:
-  npm run cli -- audit-sgtm --account 123 --container 456
-  npm run cli -- compare-dual --web-account 1 --web-container 2 --server-account 1 --server-container 9 --property 111
-  npm run cli -- cutover-checklist --web-account 1 --web-container 2 --server-account 1 --server-container 9 --property 111 --health-url https://tags.example.com/healthy
-  npm run cli -- health --url https://tags.example.com
+  npm run cli -- list-search-sites
+  npm run cli -- top-queries --site https://example.com/
+  npm run cli -- pagespeed --url https://example.com/ --strategy mobile
+  npm run cli -- crux --origin https://example.com --form-factor PHONE
 `);
 }
 
@@ -129,7 +139,6 @@ async function main() {
         help();
         break;
 
-      // ── Discovery ───────────────────────────────────────────
       case "list-properties": {
         const { listProperties } = await import("./google/admin-api.js");
         print(await listProperties());
@@ -138,6 +147,68 @@ async function main() {
       case "list-sgtm": {
         const { listSgtmContainers } = await import("./google/sgtm-api.js");
         print(await listSgtmContainers());
+        break;
+      }
+      case "list-search-sites": {
+        const { listSearchConsoleSites } = await import("./google/search-console.js");
+        print(await listSearchConsoleSites());
+        break;
+      }
+      case "search-overview": {
+        const { querySearchAnalytics } = await import("./google/search-console.js");
+        print(
+          await querySearchAnalytics({
+            siteUrl: req(args, "site"),
+            startDate: str(args, "start") || "28daysAgo",
+            endDate: str(args, "end") || "3daysAgo",
+            dimensions: [],
+            rowLimit: 1,
+          })
+        );
+        break;
+      }
+      case "top-queries": {
+        const { querySearchAnalytics } = await import("./google/search-console.js");
+        print(
+          await querySearchAnalytics({
+            siteUrl: req(args, "site"),
+            startDate: str(args, "start") || "28daysAgo",
+            endDate: str(args, "end") || "3daysAgo",
+            dimensions: ["query"],
+            rowLimit: str(args, "limit") ? parseInt(String(str(args, "limit")), 10) : 20,
+          })
+        );
+        break;
+      }
+      case "inspect-url": {
+        const { inspectUrl } = await import("./google/search-console.js");
+        print(
+          await inspectUrl({
+            siteUrl: req(args, "site"),
+            inspectionUrl: req(args, "url"),
+          })
+        );
+        break;
+      }
+      case "pagespeed": {
+        const { runPagespeed } = await import("./google/pagespeed.js");
+        print(
+          await runPagespeed({
+            url: req(args, "url"),
+            strategy: (str(args, "strategy") as "mobile" | "desktop") || "mobile",
+          })
+        );
+        break;
+      }
+      case "crux": {
+        const { queryCrux } = await import("./google/crux.js");
+        print(
+          await queryCrux({
+            origin: str(args, "origin"),
+            url: str(args, "url"),
+            formFactor: str(args, "form-factor") as any,
+          })
+        );
         break;
       }
       case "list-streams": {
@@ -157,7 +228,6 @@ async function main() {
         break;
       }
 
-      // ── Step 1 Web audit ────────────────────────────────────
       case "audit-web": {
         const { auditGa4SetupV2 } = await import("./google/gtm-audit-v2.js");
         print(
@@ -172,8 +242,6 @@ async function main() {
         );
         break;
       }
-
-      // ── Step 2 sGTM ─────────────────────────────────────────
       case "audit-sgtm": {
         const { auditSgtmSetup } = await import("./google/sgtm-api.js");
         print(
@@ -199,8 +267,6 @@ async function main() {
         );
         break;
       }
-
-      // ── Step 3 Secrets / MP ─────────────────────────────────
       case "verify-secrets": {
         const { verifyGa4Secrets } = await import("./google/mp-secrets.js");
         print(
@@ -257,8 +323,6 @@ async function main() {
         );
         break;
       }
-
-      // ── Step 4 Dual-tagging ─────────────────────────────────
       case "compare-dual": {
         const { compareDualTagging } = await import(
           "./google/sgtm-dual-tagging.js"
@@ -278,8 +342,6 @@ async function main() {
         );
         break;
       }
-
-      // ── Step 5 Cutover ──────────────────────────────────────
       case "cutover-checklist": {
         const { cutoverChecklist } = await import("./google/sgtm-cutover.js");
         print(
@@ -298,8 +360,6 @@ async function main() {
         );
         break;
       }
-
-      // ── Step 6 Health ───────────────────────────────────────
       case "health": {
         const { checkSgtmHealth } = await import("./google/sgtm-health.js");
         print(
@@ -324,8 +384,6 @@ async function main() {
         );
         break;
       }
-
-      // ── Analytics ───────────────────────────────────────────
       case "analyze-ecommerce": {
         const { analyzeEcommerceData } = await import(
           "./google/ecommerce-data.js"
@@ -346,7 +404,6 @@ async function main() {
           startDate: str(args, "start"),
           endDate: str(args, "end"),
         });
-        // business tools return MCP content shape
         if (result?.content?.[0]?.text) {
           console.log(result.content[0].text);
         } else {
@@ -354,8 +411,6 @@ async function main() {
         }
         break;
       }
-
-      // ── Server ──────────────────────────────────────────────
       case "serve-http": {
         const { startServer } = await import("./server.js");
         await startServer("http");
