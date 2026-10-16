@@ -1,0 +1,23 @@
+# Google Growth plugin for Grok Build
+name = "google-growth"
+version = "0.8.0"
+description = "GA4, GTM, Search Console, PageSpeed, and CrUX tools"
+author = "Geoking2104 / KayrosLab"
+license = "Apache-2.0"
+repository = "https://github.com/Geoking2104/GA-to-Grok"
+
+[mcp_servers.google-growth]
+command = "node"
+args = ["${GROK_PLUGIN_ROOT}/../../dist/index.js", "--transport", "stdio"]
+startup_timeout_sec = 45
+tool_timeout_sec = 120
+env = {
+  GOOGLE_APPLICATION_CREDENTIALS = "${GOOGLE_APPLICATION_CREDENTIALS}",
+  GOOGLE_CREDENTIALS_JSON = "${GOOGLE_CREDENTIALS_JSON}",
+  GA4_PROPERTY_ID = "${GA4_PROPERTY_ID}",
+  TRANSPORT = "stdio",
+  GA4_WRITE_ENABLED = "${GA4_WRITE_ENABLED:-false}",
+  GTM_WRITE_ENABLED = "${GTM_WRITE_ENABLED:-false}",
+  SEARCH_CONSOLE_WRITE_ENABLED = "${SEARCH_CONSOLE_WRITE_ENABLED:-false}",
+  INDEXING_WRITE_ENABLED = "${INDEXING_WRITE_ENABLED:-false}",
+}
