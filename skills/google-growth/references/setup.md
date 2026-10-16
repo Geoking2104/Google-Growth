@@ -2,13 +2,13 @@
 
 Source — https://github.com/Geoking2104/GA-to-Grok
 
-The skill is named **google-growth**. The MCP server is still named **ga-to-grok**.
+Skill name and MCP server name: **google-growth**.
 
 This guide is for marketers and the person who sets up the tools. You do not need to write code to *use* the skill, but someone must connect the server once.
 
 ## What “connected” means
 
-The skill is a method. Live data comes from the **GA-to-Grok MCP server**. Until that server is running and linked to your agent, the skill can only explain setup — it cannot read your Analytics.
+The skill is a method. Live data comes from the **google-growth MCP server**. Until that server is running and linked to your agent, the skill can only explain setup — it cannot read your Analytics.
 
 ## Choose a solution
 
@@ -17,7 +17,7 @@ The skill is a method. Live data comes from the **GA-to-Grok MCP server**. Until
 Best if several people will ask questions in Grok, Claude, or Codex.
 
 1. A technical owner deploys the server with public HTTPS (`TRANSPORT=http`).
-2. Add the URL as a custom MCP connector in the agent.
+2. Add the URL as a custom MCP connector named `google-growth`.
 3. URL: `https://your-host.example.com/mcp` (or `/sse` for older clients).
 4. Optional: `Authorization: Bearer <MCP_API_TOKEN>` if the server requires it.
 5. Save. Tools appear automatically.
@@ -31,6 +31,8 @@ npm install && npm run build
 export GOOGLE_APPLICATION_CREDENTIALS=/absolute/path/to/sa.json
 ./scripts/install-skill.sh both
 ```
+
+The project `.mcp.json` and `.grok/config.toml` already register the server as `google-growth`.
 
 ### Solution C — Skill only (no live data)
 
@@ -58,6 +60,10 @@ GTM_WRITE_ENABLED=false
 SEARCH_CONSOLE_WRITE_ENABLED=false
 INDEXING_WRITE_ENABLED=false
 ```
+
+## If you still have an old connector
+
+Remove or rename any connector still called `ga-to-grok`. The server identity is now `google-growth`. Tools are prefixed `google-growth__…`.
 
 ## Related docs
 
