@@ -6,6 +6,7 @@ Common ids
 
 - `propertyId` — numeric GA4 property (no `properties/` prefix unless the tool already accepts it)
 - `accountId`, `containerId`, `workspaceId` — GTM ids as strings
+- `siteUrl` — exact Search Console property id (from `list_search_console_sites`)
 - dates — `today`, `yesterday`, `NdaysAgo`, or `YYYY-MM-DD`
 
 ## GA4
@@ -85,12 +86,27 @@ All require `confirm=true` to execute. Prefer `dryRun=true` first. Do not publis
 
 `mode` on MP helpers is typically `direct`, `sgtm`, or `both`.
 
+## Search Console — site & indexing
+
+| Tool | Typical args | Notes |
+|---|---|---|
+| `list_search_console_sites` | none | Start here — copy exact `siteUrl` |
+| `get_search_console_site` | siteUrl | Property details / permission |
+| `list_sitemaps` | siteUrl | All submitted sitemaps + status |
+| `get_sitemap` | siteUrl, feedpath | One sitemap details |
+| `inspect_url` | siteUrl, inspectionUrl, languageCode? | Index status of one URL |
+| `inspect_urls` | siteUrl, inspectionUrls[] | Batch inspection (keep ≤ 10–20) |
+
+`siteUrl` must be copied exactly from `list_search_console_sites` (trailing slash for URL-prefix, or `sc-domain:example.com`).
+`inspectionUrl` must belong to that property.
+
 ## Common error patterns
 
-- **403 / permissionDenied** — Service Account not invited to the property or GTM account. Grant Viewer (Editor for writes).
+- **403 / permissionDenied** — Service Account not invited to the property, GTM account, or Search Console site. Grant the appropriate access.
 - **Writes disabled** — Server has `GA4_WRITE_ENABLED` or `GTM_WRITE_ENABLED` unset or false. Do not retry with `confirm=true`.
 - **Invalid arguments** — Zod validation failed. Check the error message for the exact field.
 - **Empty / truncated results** — Widen the date range or raise `limit`. Large reports are paginated automatically on `run_report`.
+- **Search Console siteUrl mismatch** — Use the exact string returned by `list_search_console_sites`.
 
 ## CLI twin (same repo, outside the agent)
 
