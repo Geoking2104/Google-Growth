@@ -13,7 +13,7 @@ It teaches the agent how to brief, audit, and prioritize. It does **not** includ
 
 ## Prerequisite
 
-Connect the open-source MCP server: https://github.com/Geoking2104/google-growth
+Connect the open-source MCP server: https://github.com/Geoking2104/Google-Growth
 
 Without that connection the skill explains setup and refuses to invent numbers.
 

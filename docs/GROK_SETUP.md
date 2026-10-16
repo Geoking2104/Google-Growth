@@ -1,6 +1,6 @@
 # Connect Google Growth to Grok
 
-MCP server name: **google-growth**. Repo: https://github.com/Geoking2104/google-growth
+MCP server name: **google-growth**. Repo: https://github.com/Geoking2104/Google-Growth
 
 Two paths:
 

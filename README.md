@@ -147,7 +147,7 @@ INDEXING_WRITE_ENABLED=true
 ## 2. Install & configure
 
 ```bash
-git clone https://github.com/Geoking2104/google-growth.git
+git clone https://github.com/Geoking2104/Google-Growth.git
 cd google-growth
 npm install
 cp .env.example .env

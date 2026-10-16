@@ -1,6 +1,6 @@
 # Connect Google Growth — practical guide
 
-Source — https://github.com/Geoking2104/google-growth
+Source — https://github.com/Geoking2104/Google-Growth
 
 Skill name and MCP server name: **google-growth**.
 
@@ -25,7 +25,7 @@ Best if several people will ask questions in Grok, Claude, or Codex.
 ### Solution B — Local stdio (developers)
 
 ```bash
-git clone https://github.com/Geoking2104/google-growth.git
+git clone https://github.com/Geoking2104/Google-Growth.git
 cd google-growth
 npm install && npm run build
 export GOOGLE_APPLICATION_CREDENTIALS=/absolute/path/to/sa.json
