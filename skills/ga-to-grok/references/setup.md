@@ -1,119 +1,111 @@
-# Connect the GA-to-Grok MCP server
+# Connect GA-to-Grok — practical guide
 
-Source repo — https://github.com/Geoking2104/GA-to-Grok
+Source — https://github.com/Geoking2104/GA-to-Grok
 
-Apache-2.0 · Node ≥ 20 · Service Account auth.
+This guide is for marketers and the person who sets up the tools. You do not need to write code to *use* the skill, but someone must connect the server once.
 
-This skill works with any agent that can call MCP tools (Grok, Claude Code, Cursor, Codex, Gemini CLI, etc.). The MCP server must be running and connected; the skill never stores credentials.
+## What “connected” means
 
-## Prerequisites
+The skill is a method. Live data comes from the **GA-to-Grok MCP server**. Until that server is running and linked to your agent, the skill can only explain setup — it cannot read your Analytics.
 
-Google Cloud project with APIs enabled
+## Choose a solution
 
-- Google Analytics Data API
-- Google Analytics Admin API
-- Tag Manager API (if GTM / sGTM tools are needed)
+### Solution A — Custom Connector (recommended for teams)
 
-Service Account JSON. Grant the SA email
+Best if several people will ask questions in Grok.
 
-- GA4 property — Viewer (Editor only if creating MP secrets)
-- GTM accounts — Read (Edit only for Phase 3 tag/trigger creation)
+1. A technical owner deploys the server with public HTTPS (`TRANSPORT=http`).
+2. You add the URL in [grok.com/connectors](https://grok.com/connectors) → New Connector → Custom.
+3. URL: `https://your-host.example.com/mcp` (or `/sse` for older clients).
+4. Optional: `Authorization: Bearer <MCP_API_TOKEN>` if the server requires it.
+5. Save. Tools appear automatically.
 
-Scopes used by the server
+**Quick test deploy (owner)**
 
-- analytics.readonly
-- analytics.edit (MP secret creation)
-- tagmanager.readonly
-- tagmanager.edit.containers (Phase 3 writes)
-
-Safety env (recommended in prod)
-
+```bash
+git clone https://github.com/Geoking2104/GA-to-Grok.git
+cd GA-to-Grok
+npm install && npm run build
+# fill .env with credentials
+npm run start:http
+ngrok http 3000
+# then use https://xxxx.ngrok-free.app/mcp in the connector
 ```
-GA4_WRITE_ENABLED=false
-GTM_WRITE_ENABLED=false
+
+### Solution B — Local stdio (developers)
+
+Best if one person works inside the repo (Grok Build, Cursor, Claude Code).
+
+```bash
+git clone https://github.com/Geoking2104/GA-to-Grok.git
+cd GA-to-Grok
+npm install && npm run build
+export GOOGLE_APPLICATION_CREDENTIALS=/absolute/path/to/sa.json
+grok mcp add --scope project ga-to-grok -- node dist/index.js --transport stdio
 ```
 
-Auth env (pick one)
+### Solution C — Skill only (no live data)
 
-```
+Installing the skill teaches the agent the workflows and tool names. It does **not** start the server. Use A or B for real reports.
+
+## One-time Google setup (owner)
+
+1. Google Cloud project.
+2. Enable APIs:
+   - Google Analytics Data API
+   - Google Analytics Admin API
+   - Tag Manager API (if you use GTM)
+   - Search Console API (if you want SEO tools)
+3. Create a Service Account and download the JSON key.
+4. Invite the Service Account email:
+   - GA4 property → **Viewer** (Editor only if creating secrets)
+   - GTM account → **Read** (Edit only for tag creation)
+   - Search Console property → user with access
+5. Optional API keys for performance tools:
+   - `PAGESPEED_API_KEY` and/or `CRUX_API_KEY`
+   - or a shared `GOOGLE_API_KEY`
+
+## Environment (owner)
+
+```bash
 GOOGLE_APPLICATION_CREDENTIALS=/absolute/path/to/sa.json
 # or
-GOOGLE_CREDENTIALS_JSON={"type":"service_account",...}
-```
+GOOGLE_CREDENTIALS_JSON='{"type":"service_account",...}'
 
-Optional default property
-
-```
-GA4_PROPERTY_ID=123456789
-```
-
-Transport
-
-```
-TRANSPORT=stdio   # local / Grok Build
-# or
-TRANSPORT=http
+GA4_PROPERTY_ID=123456789          # optional default
+TRANSPORT=http                     # or stdio
 PORT=3000
+
+# Performance (optional but recommended)
+PAGESPEED_API_KEY=...
+CRUX_API_KEY=...
+
+# Writes OFF by default — leave false unless you intentionally enable them
+GA4_WRITE_ENABLED=false
+GTM_WRITE_ENABLED=false
+SEARCH_CONSOLE_WRITE_ENABLED=false
+INDEXING_WRITE_ENABLED=false
 ```
 
-## Path A — Remote HTTPS (most users)
+## Optimal checklist for a marketing team
 
-1. Deploy the server with `TRANSPORT=http` and public HTTPS (Docker / Fly / Railway / VPS).
-2. Preferred endpoint: `https://your-host.example.com/mcp` (Streamable HTTP).
-   Legacy clients can use `/sse`.
-3. Add the URL as a Custom Connector / MCP server in your agent.
-4. Optional: set `MCP_API_TOKEN` on the server and send `Authorization: Bearer <token>`.
-
-Quick local tunnel for tests
-
-```
-git clone https://github.com/Geoking2104/GA-to-Grok.git
-cd GA-to-Grok
-npm install && npm run build
-# set credentials in .env
-npm run start:http
-# then ngrok http 3000 → https://xxxx.ngrok-free.app/mcp
-```
-
-Docker sketch
-
-```
-docker run -p 3000:3000 \
-  -e TRANSPORT=http \
-  -e GOOGLE_CREDENTIALS_JSON='...' \
-  -e GA4_PROPERTY_ID=123456789 \
-  ga-to-grok
-```
-
-Docs in the repo — `docs/GROK_SETUP.md`, `docs/DEPLOYMENT.md`, `docs/VPS_DEPLOY.md`.
-
-## Path B — Local stdio (developers)
-
-```
-git clone https://github.com/Geoking2104/GA-to-Grok.git
-cd GA-to-Grok
-npm install && npm run build
-export GOOGLE_APPLICATION_CREDENTIALS=/path/to/sa.json
-```
-
-The repo ships `.grok/config.toml` and `.mcp.json` for Grok Build / Cursor / Claude Code. Tools appear with a prefix such as `ga-to-grok__<tool_name>`.
-
-Register in Grok Build
-
-```
-grok mcp add --scope project ga-to-grok -- node dist/index.js --transport stdio
-grok mcp add --transport http ga-to-grok https://your-host.example.com/mcp
-```
-
-Details — `docs/GROK_BUILD.md`.
-
-## Path C — skill only
-
-Installing this skill does not start the MCP server. You still need Path A or B for live data.
+1. Server deployed (Solution A).
+2. Service Account invited on every property you care about.
+3. Connector visible in Grok; a test prompt works: “List my GA4 properties”.
+4. PageSpeed / CrUX keys set if you want speed audits.
+5. Optional: a dedicated agent with the SEO & performance workflow saved.
+6. Agree a cadence (e.g. weekly briefing, monthly SEO audit).
 
 ## If tools are missing
 
-1. Confirm the agent can list MCP tools and that a GA4/GTM-related tool appears.
-2. Confirm the Service Account email is invited to the GA4 property (and GTM account) in Google Admin.
-3. Confirm the required APIs are enabled and `TRANSPORT` matches how the agent is attached (stdio vs HTTP).
-4. Do not invent traffic or revenue.
+1. Can the agent list MCP tools? Look for `list_properties` or `get_traffic_overview`.
+2. Is the Service Account email invited in GA4 / GTM / Search Console?
+3. Are the Google APIs enabled?
+4. Does `TRANSPORT` match how you connected (stdio vs HTTP)?
+5. Do not invent traffic, revenue, or scores.
+
+## Related docs in the repo
+
+- `docs/GROK_SETUP.md` — connectors vs Build
+- `docs/DEPLOYMENT.md` — Docker / Fly / Railway
+- `docs/GROK_BUILD.md` — local packaging
