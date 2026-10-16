@@ -4,6 +4,7 @@ import {
   getSearchConsoleSite,
   listSitemaps,
   getSitemap,
+  submitSitemap,
   inspectUrl,
 } from "../google/search-console.js";
 import { success, fail } from "./response.js";
@@ -15,6 +16,14 @@ const siteUrl = z
   .describe(
     "Exact Search Console property identifier (copy from list_search_console_sites). Example: https://example.com/ or sc-domain:example.com"
   );
+
+function assertSearchConsoleWriteEnabled() {
+  if (process.env.SEARCH_CONSOLE_WRITE_ENABLED !== "true") {
+    throw new Error(
+      "Search Console writes are disabled. Set SEARCH_CONSOLE_WRITE_ENABLED=true to allow sitemap submission."
+    );
+  }
+}
 
 export const searchConsoleTools = [
   // ─── Sites ──────────────────────────────────────────────
@@ -73,6 +82,47 @@ export const searchConsoleTools = [
     handler: async (args: any) => {
       try {
         return success(await getSitemap(args.siteUrl, args.feedpath));
+      } catch (err) {
+        return fail(err);
+      }
+    },
+  },
+  {
+    name: "submit_sitemap",
+    description:
+      "WRITE: Submit (add) a sitemap to a Search Console property. Requires SEARCH_CONSOLE_WRITE_ENABLED=true on the server and confirm=true. Use dryRun=true first to preview. The Service Account needs the full webmasters scope and write access on the property.",
+    schema: strict({
+      siteUrl,
+      feedpath: z
+        .string()
+        .min(1)
+        .describe(
+          "Sitemap path or full URL to submit (e.g. https://example.com/sitemap.xml or sitemap.xml)"
+        ),
+      dryRun: z.boolean().optional(),
+      confirm: z.boolean().optional(),
+    }),
+    handler: async (args: any) => {
+      try {
+        if (args.dryRun) {
+          return success({
+            dryRun: true,
+            wouldSubmit: {
+              siteUrl: args.siteUrl,
+              feedpath: args.feedpath,
+            },
+            message:
+              "Dry run only. Set dryRun=false and confirm=true to actually submit.",
+          });
+        }
+        if (args.confirm !== true) {
+          return fail(
+            "Refusing to submit sitemap without confirm=true. Run with dryRun=true first, then confirm=true."
+          );
+        }
+        assertSearchConsoleWriteEnabled();
+        const result = await submitSitemap(args.siteUrl, args.feedpath);
+        return success(result);
       } catch (err) {
         return fail(err);
       }
