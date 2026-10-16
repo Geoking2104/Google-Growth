@@ -1,138 +1,158 @@
 ---
 name: ga-to-grok
-description: Use Google Analytics 4, Google Tag Manager (web + server-side), and Measurement Protocol through the GA-to-Grok MCP server. Trigger on GA4, GTM, sGTM, Measurement Protocol, ecommerce events, dual-tagging, cutover, traffic reports, acquisition, realtime analytics, or when the user mentions GA-to-Grok.
+description: Use Google Analytics 4, Google Tag Manager, Search Console, PageSpeed, and CrUX through the GA-to-Grok MCP server. Trigger on GA4, GTM, sGTM, Measurement Protocol, Search Console, PageSpeed, CrUX, ecommerce, dual-tagging, traffic reports, SEO audits, or when the user mentions GA-to-Grok.
 license: Apache-2.0
 metadata:
   source: https://github.com/Geoking2104/GA-to-Grok
-  version: "0.6.1"
+  version: "0.7.0"
 ---
 
 # GA-to-Grok
 
-Work with **GA4 + GTM web + sGTM + Measurement Protocol** via the open-source MCP server https://github.com/Geoking2104/GA-to-Grok.
+Work with **GA4 + GTM + Search Console + PageSpeed + CrUX** via the open-source MCP server https://github.com/Geoking2104/GA-to-Grok.
 
-**Prerequisite:** This skill only works when the GA-to-Grok MCP server is running and connected in the current agent (Custom Connector, local stdio, or equivalent). It does not replace Google credentials and never asks for or stores a Service Account private key. If the tools are not available, stop and explain setup — do not invent metrics.
+This skill is written for marketers, growth teams, and agencies who want answers from live Google data — not from pasted screenshots.
+
+**Prerequisite:** The GA-to-Grok MCP server must be running and connected in the current agent. The skill never stores credentials. If tools are missing, stop and explain setup (see `references/setup.md`). Do not invent metrics.
+
+## Why use this skill (vs a classic LLM)
+
+| Classic LLM | GA-to-Grok |
+|---|---|
+| Works on what you paste (exports, screenshots) | Calls Google APIs directly |
+| Can invent numbers | Cites only tool results |
+| One source at a time, manual | Crosses GA4, Search Console, PageSpeed, CrUX |
+| Advice only | Can act (gated writes: GTM, sitemap, Indexing API) |
+| Method changes every chat | Reproducible workflows |
+
+### Concrete benefits for marketers
+
+1. **Real numbers** — traffic, queries, Core Web Vitals come from the APIs, not from memory.
+2. **Less friction** — no export → paste → reformat loop. Ask in plain language.
+3. **Cross-source insight** — pages that rank well but convert poorly, or rank well and load slowly.
+4. **Prioritized actions** — reports end with a short list of what to fix first.
+5. **Safe by default** — reads are open; writes need explicit flags + `confirm=true`.
+6. **Reusable** — an agent can run the same briefing or SEO audit every week.
 
 ## First action every session
 
-1. Discover live MCP tools in the current agent. Tool names vary by connector prefix (examples: `ga-to-grok__list_properties`, `ga4_list_properties`, or a custom connector name).
-   - In Grok Build: `grok-mcp ls --query "ga4"` (also try `gtm`, `sgtm`, `measurement`).
-   - In other agents: use the agent’s native MCP tool listing or search for tools containing `ga4`, `gtm`, `sgtm`, or `measurement`.
-2. If nothing matches, the MCP is not connected. Explain the shortest setup path (see `references/setup.md`) and do not invent numbers.
-3. Call tools with the exact name returned by discovery. Prefer the business tools listed below over raw `run_report` unless the user asks for custom dimensions or metrics.
+1. Discover live MCP tools. Names vary by prefix (`ga-to-grok__…` or a custom connector name).
+   - Search for tools containing `ga4`, `gtm`, `search_console`, `pagespeed`, `crux`, `indexing`.
+2. If nothing matches, the MCP is not connected. Explain the shortest path in `references/setup.md`. Do not invent numbers.
+3. Call tools with the exact discovered name. Prefer business tools over raw `run_report`.
 
-Never fabricate GA4 metrics. If a call fails, report the error and the next permission step (see common errors below).
+## How to choose a tool
+
+| User intent | Tool |
+|---|---|
+| List GA4 properties | `list_properties` |
+| Traffic overview | `get_traffic_overview` |
+| Top pages / channels / devices | `get_top_pages`, `get_acquisition`, `get_devices` |
+| Ecommerce | `analyze_ecommerce_data` |
+| Search Console sites | `list_search_console_sites` |
+| Top queries / pages in Search | `get_top_queries`, `get_top_search_pages` |
+| Index status | `inspect_url` |
+| Page speed (lab) | `run_pagespeed` |
+| Real-user vitals | `query_crux` |
+| Submit a sitemap (write) | `submit_sitemap` (gated) |
+
+Full catalog — `references/tools.md`.
+
+Dates: `today`, `yesterday`, `7daysAgo`, `28daysAgo`, or `YYYY-MM-DD`. Default to 7 or 28 days if vague.
+
+## Standard workflows
+
+### A. Weekly analytics briefing (marketer)
+
+1. `list_properties` if needed
+2. `get_traffic_overview` (period)
+3. `get_acquisition` + `get_top_pages` + `get_devices`
+4. `get_events_summary`
+5. If ecommerce — `analyze_ecommerce_data`
+6. Summarize: users, sessions, top sources, anomalies. Cite dates and property id.
+
+### B. SEO & performance audit
+
+1. `list_search_console_sites` → exact `siteUrl`
+2. `get_top_search_pages` (28 days, limit 10–15)
+3. `query_crux` on origin (PHONE) and key URLs
+4. `run_pagespeed` (mobile) on home + priority pages
+5. Optional: `inspect_url` on critical pages
+6. Output a priority table:
+   - Page | Search clicks | LCP/INP/CLS field | Lab score | Priority
+   - Then 3–5 concrete actions
+
+If a source fails (403, no CrUX data, quota), say so and continue with the others. Never invent figures.
+
+### C. GTM web audit
+
+1. `list_gtm_accounts` → containers → workspaces
+2. `audit_ga4_setup_v2`
+3. `validate_ecommerce_events` if relevant
+4. Report grade, blockers, fixes. Do not publish.
+
+### D. Server-side tracking / cutover
+
+Follow order in `references/sgtm.md`. Do not skip steps.
+
+### E. Custom event (write)
+
+1. Analyze first
+2. `suggest_custom_event_config`
+3. Write only after explicit confirmation — `dryRun=true` then `confirm=true`
+
+## Optimal operation (for marketers)
+
+Several ways to run this. Pick one.
+
+| Solution | Best for | What you need |
+|---|---|---|
+| **A. Custom Connector (HTTPS)** | Most teams, Grok web | Someone deploys the server once; you add the URL in grok.com/connectors |
+| **B. Local stdio** | Developers / agencies with a tech person | Clone, build, Service Account on the machine |
+| **C. Skill only** | Docs / method | Installs the method, but **no live data** until A or B is done |
+
+Recommended for a marketing team:
+
+1. One technical owner deploys the MCP (Path A).
+2. Service Account invited to GA4, GTM, and Search Console.
+3. Optional API keys for PageSpeed and CrUX.
+4. Connector added in Grok.
+5. Optional: a dedicated agent with the SEO audit workflow saved.
+
+Details and step-by-step — `references/setup.md`.
+
+## Write safety
+
+Writes (GTM tags, sitemap submit, Indexing API, MP secrets) are off by default.
+
+- Never set `confirm=true` unless the user explicitly asked to write.
+- Always `dryRun=true` first.
+- Server flags (`GA4_WRITE_ENABLED`, `GTM_WRITE_ENABLED`, `SEARCH_CONSOLE_WRITE_ENABLED`, `INDEXING_WRITE_ENABLED`) must be `true`.
+- Never print a full secret or Service Account key.
 
 ## Common errors
 
 | Symptom | Likely cause | Next step |
 |---|---|---|
-| 403 / permissionDenied | Service Account not invited to the GA4 property or GTM account | Ask the user to grant Viewer (or Editor for writes) on the property/account |
-| Missing property / invalid ID | Wrong or unset `propertyId` | Call `list_properties` first |
-| Writes blocked | `GA4_WRITE_ENABLED` or `GTM_WRITE_ENABLED` not set to `true` on the server | Tell the user the server flags are off; do not retry with `confirm=true` |
-| Tool not found | MCP not connected or wrong name | Re-run discovery; fall back to setup instructions |
-| Empty results | Date range too narrow, or property has no data | Widen dates or confirm the property has traffic |
-
-## How to choose a tool
-
-Prefer business tools over raw `run_report` unless the user asks for custom dimensions/metrics.
-
-| User intent | Tool |
-|---|---|
-| List properties / pick a property | `list_properties`, `get_property_details` |
-| Traffic last N days | `get_traffic_overview` |
-| Top pages | `get_top_pages` |
-| Channels / source-medium | `get_acquisition` |
-| Device / OS / browser | `get_devices` |
-| Event catalog | `get_events_summary`, `list_custom_events` |
-| Live last 30 min | `run_realtime_report` |
-| Revenue / AOV / funnel | `analyze_ecommerce_data` |
-| Dimensions and metrics catalog | `get_metadata` |
-| Ad-hoc report | `run_report` |
-
-Dates accept GA4 relative strings (`today`, `yesterday`, `7daysAgo`, `28daysAgo`, `30daysAgo`) or `YYYY-MM-DD`. Default to last 7 or 28 days if the user is vague. `propertyId` is optional when `GA4_PROPERTY_ID` is set on the server.
-
-GTM / sGTM / MP catalogs and write gates — `references/tools.md`.
-
-## Standard workflows
-
-### A. Analytics briefing (read-only)
-
-1. `list_properties` if property unknown
-2. `get_traffic_overview` (period)
-3. `get_acquisition` + `get_top_pages` + `get_devices`
-4. `get_events_summary`
-5. If commerce site — `analyze_ecommerce_data`
-6. Summarize in the user's language — users, sessions, engagement, top sources, anomalies. Cite dates and property id.
-
-### B. GTM web audit
-
-1. `list_gtm_accounts` then `list_gtm_containers` then `list_gtm_workspaces`
-2. `audit_ga4_setup_v2` (pass `propertyId` to compare live events)
-3. `validate_ecommerce_events` on ecommerce sites
-4. `compare_gtm_vs_ga4_events` for config vs received
-5. Report score/grade, blocking issues, then recommended fixes. Do not publish workspaces.
-
-### C. Server-side tracking / cutover
-
-Follow this order (do not skip)
-
-1. Stabilize web — `audit_ga4_setup_v2` + `validate_ecommerce_events`
-2. `list_sgtm_containers` then `audit_sgtm_setup`
-3. `verify_ga4_secrets` then `suggest_measurement_protocol_config`
-4. `compare_dual_tagging`
-5. `cutover_checklist` (optional `sgtmHealthUrl`)
-6. `check_sgtm_health` / `sgtm_observability_snapshot`
-7. Advise progressive `server_container_url`, 48–72h parity watch, then stop client-side direct hits only when ready flags are true
-
-Architecture notes — `references/sgtm.md`.
-
-### D. Custom event
-
-1. `list_custom_events` / `analyze_custom_event`
-2. `suggest_custom_event_config`
-3. Writes only after explicit user confirmation — `create_ga4_event_setup` with `dryRun=true` first, then `confirm=true`
-
-## Write safety
-
-Tools that mutate Google config
-
-- `create_measurement_protocol_secret`, `configure_measurement_protocol` (if `createSecretName`)
-- `create_custom_event_trigger`, `create_ga4_event_tag`, `create_ga4_event_setup`
-
-Rules
-
-- Never set `confirm=true` unless the user explicitly asked to write.
-- Always run `dryRun=true` first and show the preview.
-- Writes do not publish the GTM workspace.
-- Server flags `GA4_WRITE_ENABLED` / `GTM_WRITE_ENABLED` may block writes — say so if the API returns that.
-- Never print a full MP `secretValue` in logs or shared docs. Tell the user it is shown once and must be stored in a secret manager.
-- Never request or echo the Service Account private key.
-
-## CLI fallback
-
-When the agent cannot call MCP tools (or for batch/ops), the same repo ships a CLI. From a checked-out clone:
-
-```bash
-npm run cli -- list-properties
-npm run cli -- audit-web --account WEB --container WEB --property 123
-npm run cli -- cutover-checklist ...
-```
-
-See repo `docs/CLI.md`.
+| Tool not found | MCP not connected | Follow `references/setup.md` |
+| 403 | Service Account not invited | Grant Viewer / Read on the property or site |
+| Writes blocked | Env flag not `true` | Tell the user; do not retry with confirm |
+| Empty results | Narrow dates or no traffic | Widen the range |
+| PageSpeed 429 | Quota | Add an API key; reduce batch size |
+| No CrUX data | Low traffic page | Fall back to PageSpeed lab |
 
 ## Answer style
 
-- Lead with the decision (healthy / broken / ready for dual-tagging / not ready).
-- Then 3–7 numbered actions.
-- Tables for metrics; call out data-quality warnings from ecommerce tools.
-- Match the user's language (French or English).
-- If MCP is missing, give the shortest path to connect (Custom Connector with HTTPS `/mcp` or `/sse`, or local stdio) instead of guessing data.
+- Lead with the decision (healthy / needs work / priority pages).
+- Then 3–7 numbered actions a marketer can act on.
+- Use tables for metrics.
+- Match the user's language.
+- If MCP is missing, give the shortest connect path — do not guess data.
 
 ## Source of truth
 
 Repo — https://github.com/Geoking2104/GA-to-Grok
 
-- Setup for connectors and local MCP — `references/setup.md`
-- Full tool list and typical arguments — `references/tools.md`
-- sGTM dual-tagging / cutover — `references/sgtm.md`
+- Setup (several solutions) — `references/setup.md`
+- Tool catalog — `references/tools.md`
+- sGTM — `references/sgtm.md`
