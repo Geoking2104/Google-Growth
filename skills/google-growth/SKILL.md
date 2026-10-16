@@ -2,10 +2,21 @@
 name: google-growth
 description: Use live Google Analytics 4, Tag Manager, Search Console, PageSpeed, and CrUX for growth briefings and SEO audits. Trigger on GA4, GTM, Search Console, PageSpeed, CrUX, ecommerce, traffic reports, SEO audits, or when the user mentions Google Growth or GA-to-Grok.
 license: Apache-2.0
+compatibility: Requires the GA-to-Grok MCP server (stdio or HTTPS). Works with Grok, Claude, and Codex.
 metadata:
   source: https://github.com/Geoking2104/GA-to-Grok
   version: "0.8.0"
   display_name: Google Growth
+external_urls:
+  - https://github.com/Geoking2104/GA-to-Grok
+  - https://grok.com/connectors
+  - https://analyticsdata.googleapis.com
+  - https://analyticsadmin.googleapis.com
+  - https://tagmanager.googleapis.com
+  - https://searchconsole.googleapis.com
+  - https://indexing.googleapis.com
+  - https://www.googleapis.com/pagespeedonline
+  - https://chromeuxreport.googleapis.com
 ---
 
 # Google Growth
@@ -156,3 +167,4 @@ MCP server name stays `ga-to-grok`. Skill name is `google-growth`.
 - Setup — `references/setup.md`
 - Tool catalog — `references/tools.md`
 - sGTM — `references/sgtm.md`
+- Example reports — `references/examples.md`
