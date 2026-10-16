@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Install the GA-to-Grok skill for Claude Code and/or Codex.
+# Install the Google Growth skill for Claude Code and/or Codex.
+# The MCP server stays named ga-to-grok.
 # Usage:
 #   ./scripts/install-skill.sh claude
 #   ./scripts/install-skill.sh codex
@@ -24,7 +25,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-SRC="$ROOT/skills/ga-to-grok"
+SRC="$ROOT/skills/google-growth"
 
 if [[ ! -f "$SRC/SKILL.md" ]]; then
   echo "Skill not found at $SRC" >&2
@@ -47,18 +48,18 @@ install_one() {
 claude_dest()
 {
   if [[ "$SCOPE" == "user" ]]; then
-    echo "$HOME/.claude/skills/ga-to-grok"
+    echo "$HOME/.claude/skills/google-growth"
   else
-    echo "$ROOT/.claude/skills/ga-to-grok"
+    echo "$ROOT/.claude/skills/google-growth"
   fi
 }
 
 codex_dest()
 {
   if [[ "$SCOPE" == "user" ]]; then
-    echo "$HOME/.codex/skills/ga-to-grok"
+    echo "$HOME/.codex/skills/google-growth"
   else
-    echo "$ROOT/.codex/skills/ga-to-grok"
+    echo "$ROOT/.codex/skills/google-growth"
   fi
 }
 
@@ -76,4 +77,4 @@ case "$TARGET" in
 esac
 
 echo "Done. Restart Claude Code / Codex if the skill does not appear."
-echo "MCP must still be connected for live data. See docs/CLAUDE_SETUP.md and docs/CODEX_SETUP.md."
+echo "MCP server name remains ga-to-grok. See docs/CLAUDE_SETUP.md and docs/CODEX_SETUP.md."
