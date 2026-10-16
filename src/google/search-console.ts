@@ -52,6 +52,43 @@ export async function submitSitemap(siteUrl: string, feedpath: string) {
   return { siteUrl, feedpath, submitted: true };
 }
 
+export interface SearchAnalyticsArgs {
+  siteUrl: string;
+  startDate: string;
+  endDate: string;
+  dimensions?: string[];
+  type?: string;
+  aggregationType?: string;
+  rowLimit?: number;
+  startRow?: number;
+  dimensionFilterGroups?: any[];
+}
+
+/**
+ * Run a Search Analytics query (clicks, impressions, CTR, position).
+ * Uses webmasters v3 searchanalytics.query.
+ */
+export async function querySearchAnalytics(args: SearchAnalyticsArgs) {
+  const wm = await getWebmasters();
+  const res = await wm.searchanalytics.query({
+    siteUrl: args.siteUrl,
+    requestBody: {
+      startDate: args.startDate,
+      endDate: args.endDate,
+      dimensions: args.dimensions,
+      type: args.type,
+      aggregationType: args.aggregationType,
+      rowLimit: args.rowLimit,
+      startRow: args.startRow,
+      dimensionFilterGroups: args.dimensionFilterGroups,
+    },
+  });
+  return {
+    rows: res.data.rows || [],
+    responseAggregationType: res.data.responseAggregationType,
+  };
+}
+
 /**
  * Inspect a URL's index status (verdict, coverage, last crawl, canonicals, robots).
  * Equivalent to the URL Inspection tool in Search Console.
