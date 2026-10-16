@@ -1,12 +1,12 @@
 {
-  "name": "ga-to-grok",
-  "version": "0.7.0",
-  "description": "Open-source MCP server connecting GA4, GTM/sGTM, Search Console, Indexing API, PageSpeed, and CrUX to Grok and other agents",
+  "name": "google-growth",
+  "version": "0.8.0",
+  "description": "Open-source MCP server connecting GA4, GTM/sGTM, Search Console, Indexing API, PageSpeed, and CrUX to Grok, Claude, and Codex",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
-    "ga-to-grok": "./dist/index.js",
-    "ga-to-grok-cli": "./dist/cli.js"
+    "google-growth": "./dist/index.js",
+    "google-growth-cli": "./dist/cli.js"
   },
   "scripts": {
     "build": "tsc",
@@ -41,7 +41,8 @@
     "pagespeed",
     "crux",
     "grok",
-    "xai",
+    "claude",
+    "codex",
     "model-context-protocol",
     "analytics"
   ],
