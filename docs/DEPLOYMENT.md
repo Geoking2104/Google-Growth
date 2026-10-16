@@ -1,4 +1,4 @@
-# Deployment Guide — GA-to-Grok
+# Deployment Guide — Google Growth
 
 This document covers production deployment with Docker, Fly.io and Railway, including Redis caching.
 
@@ -43,7 +43,7 @@ fly secrets set SEARCH_CONSOLE_WRITE_ENABLED=false
 fly secrets set INDEXING_WRITE_ENABLED=false
 ```
 
-Public URL: `https://ga-to-grok.fly.dev/mcp`
+Public URL: `https://google-growth.fly.dev/mcp`
 
 ---
 

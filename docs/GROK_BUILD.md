@@ -1,6 +1,6 @@
 # Package & use Google Growth with Grok Build
 
-MCP server name: **google-growth**. Repo: https://github.com/Geoking2104/GA-to-Grok
+MCP server name: **google-growth**. Repo: https://github.com/Geoking2104/google-growth
 
 [Grok Build](https://docs.x.ai/build/overview) loads MCP servers from:
 
@@ -16,8 +16,8 @@ Tools appear as `google-growth__<tool_name>`.
 ## Quick start (local stdio)
 
 ```bash
-git clone https://github.com/Geoking2104/GA-to-Grok.git
-cd GA-to-Grok
+git clone https://github.com/Geoking2104/google-growth.git
+cd google-growth
 npm install && npm run build
 
 export GOOGLE_APPLICATION_CREDENTIALS=/path/to/sa.json
@@ -26,7 +26,7 @@ export GA4_PROPERTY_ID=123456789
 grok inspect
 grok mcp doctor google-growth
 
-cd GA-to-Grok && grok
+cd google-growth && grok
 ```
 
 ### One-liner register (project scope)
@@ -38,7 +38,7 @@ grok mcp add --scope project google-growth -- node dist/index.js --transport std
 ### User-level register
 
 ```bash
-grok mcp add google-growth -- node /ABS/PATH/GA-to-Grok/dist/index.js --transport stdio
+grok mcp add google-growth -- node /ABS/PATH/Google Growth/dist/index.js --transport stdio
 ```
 
 ---

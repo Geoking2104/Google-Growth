@@ -1,8 +1,8 @@
-# GA-to-Grok
+# Google Growth
 
 **Open-source MCP server** connecting **Google Analytics 4**, **Google Tag Manager** (web + **server-side**), **Measurement Protocol**, **Search Console**, the **Indexing API**, **PageSpeed Insights**, and **CrUX** to **Grok** (xAI), **Claude** (Anthropic), **Codex** (OpenAI), and any MCP-capable agent.
 
-The agent reads live Google data, audits setups, crosses organic search with site speed, and (when explicitly enabled) submits sitemaps or notifies the Indexing API — via **MCP tools** or a **CLI**. Skill and MCP server are both named **google-growth**. The GitHub repo stays GA-to-Grok.
+The agent reads live Google data, audits setups, crosses organic search with site speed, and (when explicitly enabled) submits sitemaps or notifies the Indexing API — via **MCP tools** or a **CLI**. Skill, MCP server, and GitHub repo are all named **google-growth**.
 
 | Client | How to connect | Skill install |
 |--------|----------------|---------------|
@@ -147,8 +147,8 @@ INDEXING_WRITE_ENABLED=true
 ## 2. Install & configure
 
 ```bash
-git clone https://github.com/Geoking2104/GA-to-Grok.git
-cd GA-to-Grok
+git clone https://github.com/Geoking2104/google-growth.git
+cd google-growth
 npm install
 cp .env.example .env
 ```

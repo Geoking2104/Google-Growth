@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# GA-to-Grok — CI validation orchestrator
+# Google Growth — CI validation orchestrator
 # Runs selected CLI steps and writes JSON reports under ./reports
 set -euo pipefail
 
@@ -41,7 +41,7 @@ var:-}" ]; then
   return 0
 }
 
-echo "GA-to-Grok CI validate @ $TS"
+echo "Google Growth CI validate @ $TS"
 echo "Flags: WEB=${RUN_WEB_AUDIT:-} SGTM=${RUN_SGTM_AUDIT:-} SECRETS=${RUN_SECRETS:-} DUAL=${RUN_DUAL:-} CUTOVER=${RUN_CUTOVER:-} HEALTH=${RUN_HEALTH:-}"
 
 # ── Step 1: Web audit ─────────────────────────────────────────

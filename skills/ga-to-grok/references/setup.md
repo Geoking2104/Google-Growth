@@ -1,12 +1,12 @@
-# Connect GA-to-Grok — practical guide
+# Connect Google Growth — practical guide
 
-Source — https://github.com/Geoking2104/GA-to-Grok
+Source — https://github.com/Geoking2104/google-growth
 
 This guide is for marketers and the person who sets up the tools. You do not need to write code to *use* the skill, but someone must connect the server once.
 
 ## What “connected” means
 
-The skill is a method. Live data comes from the **GA-to-Grok MCP server**. Until that server is running and linked to your agent, the skill can only explain setup — it cannot read your Analytics.
+The skill is a method. Live data comes from the **Google Growth MCP server**. Until that server is running and linked to your agent, the skill can only explain setup — it cannot read your Analytics.
 
 ## Choose a solution
 
@@ -23,8 +23,8 @@ Best if several people will ask questions in Grok.
 **Quick test deploy (owner)**
 
 ```bash
-git clone https://github.com/Geoking2104/GA-to-Grok.git
-cd GA-to-Grok
+git clone https://github.com/Geoking2104/google-growth.git
+cd google-growth
 npm install && npm run build
 # fill .env with credentials
 npm run start:http
@@ -37,8 +37,8 @@ ngrok http 3000
 Best if one person works inside the repo (Grok Build, Cursor, Claude Code).
 
 ```bash
-git clone https://github.com/Geoking2104/GA-to-Grok.git
-cd GA-to-Grok
+git clone https://github.com/Geoking2104/google-growth.git
+cd google-growth
 npm install && npm run build
 export GOOGLE_APPLICATION_CREDENTIALS=/absolute/path/to/sa.json
 grok mcp add --scope project ga-to-grok -- node dist/index.js --transport stdio

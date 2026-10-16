@@ -1,4 +1,4 @@
-# Deploy GA-to-Grok on a VPS (Docker + Caddy)
+# Deploy Google Growth on a VPS (Docker + Caddy)
 
 This guide stands up a public, HTTPS-protected MCP server on a VPS so it can be
 wired into xAI Grok via **Grok Connectors (Custom)** or the **Remote MCP Tools

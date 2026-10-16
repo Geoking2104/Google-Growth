@@ -1,7 +1,7 @@
 # Google Tag Manager ↔ GA4 Integration
 
 **Cahier des charges & Spécifications techniques**  
-Projet : **GA-to-Grok**  
+Projet : **Google Growth**  
 Version : 1.1  
 Date : 14 août 2026  
 Statut : Phase 1 implémentée · Phase 2 spécifiée en détail

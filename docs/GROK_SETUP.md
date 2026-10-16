@@ -1,6 +1,6 @@
 # Connect Google Growth to Grok
 
-MCP server name: **google-growth**. Repo: https://github.com/Geoking2104/GA-to-Grok
+MCP server name: **google-growth**. Repo: https://github.com/Geoking2104/google-growth
 
 Two paths:
 
@@ -14,7 +14,7 @@ Claude and Codex use the same skill. See [CLAUDE_SETUP.md](CLAUDE_SETUP.md) and 
 ## A. Grok Build
 
 ```bash
-cd GA-to-Grok && npm install && npm run build
+cd google-growth && npm install && npm run build
 export GOOGLE_APPLICATION_CREDENTIALS=/path/to/sa.json
 grok mcp doctor google-growth
 grok   # run inside the repo — uses .grok/config.toml

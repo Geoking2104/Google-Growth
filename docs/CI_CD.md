@@ -1,4 +1,4 @@
-# CI/CD — Validation GA-to-Grok
+# CI/CD — Validation Google Growth
 
 ## Workflows GitHub Actions
 

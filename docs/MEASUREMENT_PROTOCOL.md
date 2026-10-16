@@ -1,6 +1,6 @@
 # Measurement Protocol — Configuration GA4
 
-## Tools GA-to-Grok
+## Tools Google Growth
 
 | Tool | Type | Description |
 |------|------|-------------|

@@ -50,12 +50,12 @@
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Geoking2104/GA-to-Grok.git"
+    "url": "https://github.com/Geoking2104/google-growth.git"
   },
   "bugs": {
-    "url": "https://github.com/Geoking2104/GA-to-Grok/issues"
+    "url": "https://github.com/Geoking2104/google-growth/issues"
   },
-  "homepage": "https://github.com/Geoking2104/GA-to-Grok#readme",
+  "homepage": "https://github.com/Geoking2104/google-growth#readme",
   "engines": {
     "node": ">=20"
   },

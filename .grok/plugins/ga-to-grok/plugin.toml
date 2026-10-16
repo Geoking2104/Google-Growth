@@ -1,10 +1,10 @@
-# GA-to-Grok plugin for Grok Build
+# Google Growth plugin for Grok Build
 name = "ga-to-grok"
 version = "0.6.1"
 description = "Google Analytics 4 + GTM + sGTM + Measurement Protocol tools for Grok"
 author = "Geoking2104 / KayrosLab"
 license = "Apache-2.0"
-repository = "https://github.com/Geoking2104/GA-to-Grok"
+repository = "https://github.com/Geoking2104/google-growth"
 
 [mcp_servers.ga-to-grok]
 command = "node"

@@ -1,6 +1,6 @@
 # Redis Caching
 
-GA-to-Grok supports an **optional** Redis cache to:
+Google Growth supports an **optional** Redis cache to:
 
 - Reduce Google Analytics API quota consumption
 - Improve response latency for repeated queries
