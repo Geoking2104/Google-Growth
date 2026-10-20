@@ -5,6 +5,7 @@ This document covers production deployment with Docker, Fly.io and Railway, incl
 ## 1. Prerequisites
 
 - Service Account JSON key with **Viewer** on GA4, **Read** on GTM, and access on Search Console if you use those tools
+- A strong `MCP_API_TOKEN` for every network-accessible HTTP deployment
 - Optional API keys for PageSpeed Insights and CrUX
 - (Recommended) A Redis instance for caching
 
@@ -13,6 +14,7 @@ This document covers production deployment with Docker, Fly.io and Railway, incl
 ```bash
 cp /path/to/your-service-account.json ./service-account.json
 export GA4_PROPERTY_ID=123456789
+export MCP_API_TOKEN="$(openssl rand -hex 32)"
 export PAGESPEED_API_KEY=...
 export CRUX_API_KEY=...
 
@@ -23,7 +25,7 @@ Server: `http://localhost:3000`
 MCP: `http://localhost:3000/mcp`  
 Legacy SSE: `http://localhost:3000/sse`
 
-Redis is included automatically. Writes stay disabled unless you set the flags to `true`.
+Redis is included automatically. The bearer token is required for HTTP requests to `/mcp`; pass it in the `Authorization: Bearer <token>` header. `/health` remains available for container health checks. Writes stay disabled unless you set the flags to `true`.
 
 ---
 
@@ -35,6 +37,7 @@ Redis is included automatically. Writes stay disabled unless you set the flags t
 fly secrets set GOOGLE_CREDENTIALS_JSON="$(cat service-account.json)"
 fly secrets set REDIS_URL="redis://default:...@..."
 fly secrets set GA4_PROPERTY_ID=123456789
+fly secrets set MCP_API_TOKEN="$(openssl rand -hex 32)"
 fly secrets set PAGESPEED_API_KEY=...
 fly secrets set CRUX_API_KEY=...
 # leave write flags unset or false
@@ -55,6 +58,7 @@ REDIS_URL = ${{Redis.REDIS_URL}}
 GA4_PROPERTY_ID = 123456789
 PAGESPEED_API_KEY = ...
 CRUX_API_KEY = ...
+MCP_API_TOKEN = a-long-random-secret
 TRANSPORT = http
 PORT = 3000
 GA4_WRITE_ENABLED = false
@@ -76,7 +80,7 @@ Endpoint: `https://your-app.up.railway.app/mcp`
 | `REDIS_URL` | Recommended | Redis connection string |
 | `GA4_PROPERTY_ID` | Optional | Default property |
 | `PAGESPEED_API_KEY` / `CRUX_API_KEY` / `GOOGLE_API_KEY` | Optional | Performance tools |
-| `MCP_API_TOKEN` | Recommended on public hosts | Bearer token for `/mcp` |
+| `MCP_API_TOKEN` | Required for non-local HTTP | Bearer token for `/mcp` |
 | `GA4_WRITE_ENABLED` | Optional | Default false |
 | `GTM_WRITE_ENABLED` | Optional | Default false |
 | `SEARCH_CONSOLE_WRITE_ENABLED` | Optional | Sitemap submit |

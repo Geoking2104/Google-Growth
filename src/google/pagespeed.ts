@@ -39,7 +39,7 @@ export async function runPagespeed(args: RunPagespeedArgs) {
     throw new Error(`PageSpeed Insights error ${res.status}: ${text.slice(0, 500)}`);
   }
 
-  const data = await res.json();
+  const data = (await res.json()) as any;
 
   // Compact summary for agents
   const categories = data.lighthouseResult?.categories || {};

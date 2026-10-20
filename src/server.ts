@@ -58,13 +58,14 @@ function createMcpServer() {
 }
 
 /**
- * Optional bearer-token auth for the HTTP transport.
- * Only enforced when MCP_API_TOKEN is set. When unset, the server stays
- * open (useful for local stdio / trusted networks).
+ * Bearer-token auth for externally reachable HTTP transports. Local-only HTTP
+ * may omit the token; binding to a public interface without one is rejected.
  */
 function requireToken(req: Request, res: Response, next: NextFunction) {
   const token = process.env.MCP_API_TOKEN;
-  if (!token) return next();
+  const host = process.env.HOST || "127.0.0.1";
+  if (!token && ["127.0.0.1", "localhost", "::1"].includes(host)) return next();
+  if (!token) return res.status(503).json({ error: "HTTP MCP is not configured securely. Set MCP_API_TOKEN or use local STDIO." });
 
   const header = req.headers["authorization"] || "";
   const incoming = header.startsWith("Bearer ") ? header.slice(7) : "";
@@ -86,14 +87,17 @@ export async function startServer(transportType: "stdio" | "http" = "stdio") {
   // ─── HTTP: SSE (legacy) + Streamable HTTP (modern) ──────────────────
   const app = express();
   app.use(cors({
-    origin: "*",
+    origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(",").map((origin) => origin.trim()) : false,
     methods: ["GET", "POST", "OPTIONS", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization", "MCP-Session-Id"],
   }));
   app.use(express.json({ limit: "4mb" }));
 
   const port = parseInt(process.env.PORT || "3000", 10);
-  const host = process.env.HOST || "0.0.0.0";
+  const host = process.env.HOST || "127.0.0.1";
+  if (host !== "127.0.0.1" && host !== "localhost" && host !== "::1" && !process.env.MCP_API_TOKEN) {
+    throw new Error("Refusing to expose the HTTP MCP server without MCP_API_TOKEN. Configure a strong bearer token or bind to 127.0.0.1.");
+  }
 
   // sessionId → transport (SSE legacy)
   const sessions = new Map<string, SSEServerTransport>();

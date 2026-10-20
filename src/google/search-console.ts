@@ -81,11 +81,12 @@ export async function querySearchAnalytics(args: SearchAnalyticsArgs) {
       rowLimit: args.rowLimit,
       startRow: args.startRow,
       dimensionFilterGroups: args.dimensionFilterGroups,
-    },
+    } as any,
   });
+  const data = res.data as any;
   return {
-    rows: res.data.rows || [],
-    responseAggregationType: res.data.responseAggregationType,
+    rows: data.rows || [],
+    responseAggregationType: data.responseAggregationType,
   };
 }
 

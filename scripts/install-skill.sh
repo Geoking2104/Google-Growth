@@ -35,7 +35,11 @@ fi
 install_one() {
   local dest="$1"
   mkdir -p "$(dirname "$dest")"
-  rm -rf "$dest"
+  if [[ -e "$dest" || -L "$dest" ]]; then
+    local backup="${dest}.backup-$(date +%Y%m%d-%H%M%S)"
+    mv "$dest" "$backup"
+    echo "Existing installation preserved at $backup"
+  fi
   if [[ "$MODE" == "link" ]]; then
     ln -s "$SRC" "$dest"
     echo "Linked $dest -> $SRC"

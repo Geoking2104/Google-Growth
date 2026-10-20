@@ -9,6 +9,8 @@
 
 import { config } from "dotenv";
 config();
+import { writeFileSync } from "node:fs";
+import { resolve } from "node:path";
 
 import { initRedis } from "./cache/redis.js";
 
@@ -56,6 +58,39 @@ function bool(args: Args, key: string): boolean {
 
 function print(data: unknown) {
   console.log(JSON.stringify(data, null, 2));
+}
+
+function trafficReport(data: any, format: string): string {
+  const daily = Array.isArray(data?.daily) ? data.daily : [];
+  const names = ["Date", "Active users", "Sessions", "Page views", "Bounce rate", "Average session duration", "New users"];
+  const values = (row: any) => [
+    ...(row?.dimensionValues || []).map((x: any) => x.value ?? ""),
+    ...(row?.metricValues || []).map((x: any) => x.value ?? ""),
+  ];
+  if (format === "csv") {
+    const quote = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+    return [names.map(quote).join(","), ...daily.map((row: any) => values(row).map(quote).join(","))].join("\n") + "\n";
+  }
+  const total = values(data?.totals);
+  const lines = [
+    "# Rapport de trafic Google Analytics",
+    "",
+    `Période : ${data?.period?.startDate || "—"} au ${data?.period?.endDate || "—"}`,
+    "",
+    "## Totaux",
+    "",
+    ...names.slice(1).map((name, i) => `- **${name} :** ${total[i] || "0"}`),
+    "",
+    "## Évolution quotidienne",
+    "",
+    `| ${names.join(" | ")} |`,
+    `| ${names.map(() => "---").join(" | ")} |`,
+    ...daily.map((row: any) => `| ${values(row).join(" | ")} |`),
+    "",
+    "Données en lecture seule fournies par Google Analytics 4.",
+    "",
+  ];
+  return lines.join("\n");
 }
 
 function help() {
@@ -114,7 +149,7 @@ Usage:
 
 ── Analytics ────────────────────────────────────────
   analyze-ecommerce         --property <id> [--start <date>] [--end <date>]
-  traffic                   --property <id> [--start <date>] [--end <date>]
+  traffic                   --property <id> [--start <date>] [--end <date>] [--format md|csv] [--output <fichier>]
 
 ── Server ───────────────────────────────────────────
   serve-http                Start MCP HTTP/SSE server
@@ -404,10 +439,23 @@ async function main() {
           startDate: str(args, "start"),
           endDate: str(args, "end"),
         });
-        if (result?.content?.[0]?.text) {
-          console.log(result.content[0].text);
+        const raw = result?.content?.[0]?.text;
+        let data: any = result;
+        if (raw) {
+          try { data = JSON.parse(raw); } catch { data = raw; }
+        }
+        const output = str(args, "output");
+        const format = str(args, "format", "md") || "md";
+        if (output) {
+          if (format !== "md" && format !== "csv") throw new Error("--format accepte uniquement md ou csv");
+          if (typeof data === "string") throw new Error("Le résultat ne peut pas être exporté : format de données inattendu.");
+          const path = resolve(output);
+          writeFileSync(path, trafficReport(data, format), "utf8");
+          console.log(`Rapport ${format.toUpperCase()} enregistré : ${path}`);
+        } else if (typeof data === "string") {
+          console.log(data);
         } else {
-          print(result);
+          print(data);
         }
         break;
       }

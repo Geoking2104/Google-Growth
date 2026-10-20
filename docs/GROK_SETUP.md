@@ -54,7 +54,7 @@ ngrok http 3000
 2. **New Connector → Custom**
 3. Name: `google-growth`
 4. URL: `https://your-server.com/mcp` (or `/sse` for legacy clients)
-5. Optional auth headers (`Authorization: Bearer <MCP_API_TOKEN>`)
+5. Required auth header (`Authorization: Bearer <MCP_API_TOKEN>`)
 6. Save — tools auto-discover
 
 ### 4. Example prompts

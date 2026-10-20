@@ -44,7 +44,7 @@ export async function queryCrux(args: QueryCruxArgs) {
     throw new Error(`CrUX API error ${res.status}: ${text.slice(0, 500)}`);
   }
 
-  const data = await res.json();
+  const data = (await res.json()) as any;
   const record = data.record || {};
   const metrics = record.metrics || {};
 

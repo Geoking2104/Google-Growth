@@ -9,6 +9,7 @@ services:
       - TRANSPORT=http
       - PORT=3000
       - HOST=0.0.0.0
+      - MCP_API_TOKEN=${MCP_API_TOKEN:?Set MCP_API_TOKEN before exposing the HTTP MCP endpoint}
       - GOOGLE_APPLICATION_CREDENTIALS=/secrets/service-account.json
       - GA4_PROPERTY_ID=${GA4_PROPERTY_ID:-}
       - PAGESPEED_API_KEY=${PAGESPEED_API_KEY:-}

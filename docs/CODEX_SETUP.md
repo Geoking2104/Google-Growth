@@ -37,7 +37,7 @@ command: node
 args: dist/index.js --transport stdio
 ```
 
-Remote HTTP: `https://your-host.example.com/mcp` with `Authorization: Bearer <MCP_API_TOKEN>` if set.
+Remote HTTP: `https://your-host.example.com/mcp` with `Authorization: Bearer <MCP_API_TOKEN>`. A bearer token is required for all network-accessible HTTP deployments.
 
 ## Verify
 

@@ -13,6 +13,27 @@ The agent reads live Google data, audits setups, crosses organic search with sit
 > Compatible with **Grok**, **Claude Code**, **Codex**, Cursor (`.mcp.json`), and self-hosted deployments.  
 > **Apache-2.0** license · Node ≥ 20
 
+## Quick setup for non-technical users
+
+On Windows, install Node.js 20 or newer, download this repository, then open a terminal in its folder and run:
+
+```powershell
+npm install
+npm run build
+npm run setup
+```
+
+The local setup assistant opens in your browser at `127.0.0.1`. It guides you through Google API access, securely stores the service-account key on this computer, creates a client-specific MCP configuration, and checks Google Analytics, Search Console, and the MCP STDIO handshake. Select **Grok Web** only if you already have a public HTTPS deployment; a local computer cannot be used as a Grok Web connector endpoint.
+
+Reports returned in an assistant conversation are not saved automatically. To export a traffic report to a local file, run for example:
+
+```powershell
+npm run cli -- traffic --property 123456789 --start 28daysAgo --end yesterday --format md --output rapport.md
+npm run cli -- traffic --property 123456789 --format csv --output trafic.csv
+```
+
+See the [guided setup and troubleshooting](docs/SETUP_WIZARD.md) for Google permissions, client behavior, and security details.
+
 ---
 
 ## Why use it (vs a classic LLM)
