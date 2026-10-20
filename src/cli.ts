@@ -11,6 +11,7 @@ import { config } from "dotenv";
 config();
 import { writeFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { formatTrafficReport } from "./utils/traffic-report.js";
 
 import { initRedis } from "./cache/redis.js";
 
@@ -58,39 +59,6 @@ function bool(args: Args, key: string): boolean {
 
 function print(data: unknown) {
   console.log(JSON.stringify(data, null, 2));
-}
-
-function trafficReport(data: any, format: string): string {
-  const daily = Array.isArray(data?.daily) ? data.daily : [];
-  const names = ["Date", "Active users", "Sessions", "Page views", "Bounce rate", "Average session duration", "New users"];
-  const values = (row: any) => [
-    ...(row?.dimensionValues || []).map((x: any) => x.value ?? ""),
-    ...(row?.metricValues || []).map((x: any) => x.value ?? ""),
-  ];
-  if (format === "csv") {
-    const quote = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
-    return [names.map(quote).join(","), ...daily.map((row: any) => values(row).map(quote).join(","))].join("\n") + "\n";
-  }
-  const total = values(data?.totals);
-  const lines = [
-    "# Rapport de trafic Google Analytics",
-    "",
-    `Période : ${data?.period?.startDate || "—"} au ${data?.period?.endDate || "—"}`,
-    "",
-    "## Totaux",
-    "",
-    ...names.slice(1).map((name, i) => `- **${name} :** ${total[i] || "0"}`),
-    "",
-    "## Évolution quotidienne",
-    "",
-    `| ${names.join(" | ")} |`,
-    `| ${names.map(() => "---").join(" | ")} |`,
-    ...daily.map((row: any) => `| ${values(row).join(" | ")} |`),
-    "",
-    "Données en lecture seule fournies par Google Analytics 4.",
-    "",
-  ];
-  return lines.join("\n");
 }
 
 function help() {
@@ -450,7 +418,7 @@ async function main() {
           if (format !== "md" && format !== "csv") throw new Error("--format accepte uniquement md ou csv");
           if (typeof data === "string") throw new Error("Le résultat ne peut pas être exporté : format de données inattendu.");
           const path = resolve(output);
-          writeFileSync(path, trafficReport(data, format), "utf8");
+          writeFileSync(path, formatTrafficReport(data, format as "md" | "csv"), "utf8");
           console.log(`Rapport ${format.toUpperCase()} enregistré : ${path}`);
         } else if (typeof data === "string") {
           console.log(data);
