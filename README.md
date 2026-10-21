@@ -30,7 +30,7 @@ The agent reads live Google data, audits setups, crosses organic search with sit
 1. **Real numbers** — traffic, queries, Core Web Vitals come from the APIs.
 2. **Less friction** — no export → paste → reformat loop.
 3. **Cross-source insight** — pages that rank well but convert poorly, or rank well and load slowly.
-4. **Prioritized actions** — reports end with what to fix first.
+4. **Detailed growth dashboards** — period-over-period KPI scorecards, at least 10 evidence-backed watch points, and exactly 3 priorities for short, medium, and long term.
 5. **Safe by default** — reads are open; writes need flags + `confirm=true`.
 
 The agent-facing method lives in [`skills/google-growth/`](skills/google-growth/) (same skill for Agensi, Claude, and Codex).
@@ -48,6 +48,7 @@ The agent-facing method lives in [`skills/google-growth/`](skills/google-growth/
 | **Search Console** | Sites, sitemaps, Search Analytics (queries, pages, devices, countries), URL inspection |
 | **Indexing API** | Notify Google of URL updates/deletes (gated); read notification metadata |
 | **PageSpeed & CrUX** | Lighthouse lab scores and real-user Core Web Vitals |
+| **Growth dashboards** | Cross-channel KPI summaries, data-confidence checks, 10+ watch points, and 3 horizon-based priorities with implementation and measurement plans |
 | **Custom events** | Discover, analyze, suggest GTM config; Phase 3 write (trigger + tag) |
 | **Ops** | CLI per step, Redis cache, Docker, GitHub Actions CI + live validation |
 
@@ -345,6 +346,12 @@ Full catalog for agents: [`skills/google-growth/references/tools.md`](skills/goo
 ### SEO & performance audit
 
 `list_search_console_sites` → `get_top_search_pages` → `query_crux` → `run_pagespeed` → optional `inspect_url` → priority table + 3–5 actions.
+
+### Detailed growth dashboard
+
+For a full cross-channel audit, the skill compares the last 28 complete days with the previous 28 days by default. It combines GA4, Search Console, CrUX/PageSpeed, and tracking-quality evidence when those sources are available. The report includes an executive readout, KPI scorecard, channel/page/funnel breakdowns, at least 10 distinct watch points, and exactly 3 priorities: short term (0–30 days), medium term (1–3 months), and long term (3–12 months).
+
+Each priority includes implementation steps, an owner/role, dependencies, a success metric, and an expected effect. Impact estimates are ranges or scenarios based on explicit data and assumptions (for example, eligible sessions × tested conversion-rate change × average order value). If the inputs are missing, the report gives a measurable target and explains what data or experiment is needed; it does not invent a revenue forecast. The connected assistant performs the LLM synthesis over MCP results; the server does not make a separate LLM API call.
 
 ### Server-side tracking / cutover
 
