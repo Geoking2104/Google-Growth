@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.9.0 — 2026-10-21
+
+### Added
+
+- Detailed cross-channel dashboard workflow with period-over-period KPI scorecards, data-confidence checks, 10+ watch points, and exactly three short-, medium-, and long-term priorities
+- LLM evidence-to-hypothesis analysis sequence and safe formulas for scenario-based impact estimates
+- Dashboard example template and clearer distinction between measured outcomes, hypotheses, and forecasts
+
+### Notes
+
+- This release updates the agent skill and its packaging metadata; the MCP server tools and API surface are unchanged
+
 ## 0.7.0 — 2026-10-16
 
 ### Added

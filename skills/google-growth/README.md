@@ -7,6 +7,7 @@ It teaches the agent how to brief, audit, and prioritize. It does **not** includ
 ## What you get
 
 - Weekly analytics briefings from real API data
+- Detailed cross-channel dashboards with period-over-period KPIs, 10+ evidence-backed watch points, and a 3-horizon action plan
 - SEO and performance priority tables (Search Console + CrUX + PageSpeed)
 - GTM and server-side tracking audits
 - Gated writes only (sitemap, Indexing API, GTM tags)

@@ -1,48 +1,78 @@
 # Example reports (for marketers)
 
-These are the shapes the agent should produce. Never invent the numbers — only fill them from tool results.
+These are output shapes, not live account results. Bracketed text is a placeholder to replace only with tool results or a clearly labeled estimate. Never present example values as the user's data.
 
 ## 1. Weekly briefing
 
-**Property** : 123456789  
-**Period** : last 28 days
+**GA4 property:** `[property id]`
 
-| Metric | Value |
-|---|---|
-| Users | 42 300 |
-| Sessions | 51 100 |
-| Top channel | Organic Search |
-| Top page | `/` |
+**Period:** `[start date] – [end date]` vs `[comparison start] – [comparison end]`
 
-**Actions**
-1. Organic is the main source — protect SEO on the top 5 pages.
-2. Bounce on `/tarifs` is high — review the offer block.
-3. Mobile share is 68% — prioritize mobile speed.
-
-## 2. SEO & performance priority table
-
-| Page | Search clicks | LCP field | Score lab | Priority |
+| Metric | Current | Previous | Change | Source |
 |---|---:|---:|---:|---|
-| `/` | 8 420 | 3,6 s | 68 | High |
-| `/simulateur` | 3 150 | 2,2 s | 84 | Medium |
-| `/blog/article` | 1 890 | — | 51 | High |
+| Users | `[API result]` | `[API result]` | `[calculated]` | GA4 |
+| Sessions | `[API result]` | `[API result]` | `[calculated]` | GA4 |
+| Top channel | `[channel + sessions]` | `[channel + sessions]` | `[calculated]` | GA4 |
+| Top page | `[page + sessions]` | `[page + sessions]` | `[calculated]` | GA4 |
 
 **Actions**
-1. Home — fix LCP (hero image, fonts, TTFB).
-2. Blog article — lab score low + high impressions.
-3. Confirm indexation on pages with no CrUX data.
 
-## 3. Performance-only snapshot
+1. `[Evidence-backed finding]` → `[action]` → measure `[KPI]`.
+2. `[Evidence-backed finding]` → `[action]` → measure `[KPI]`.
+3. `[Evidence-backed finding]` → `[action]` → measure `[KPI]`.
 
-**URL** : `https://www.example.com/`  
-**Strategy** : mobile
+## 2. SEO & performance table
 
-| Source | LCP | INP | CLS | Score |
-|---|---:|---:|---:|---:|
-| PageSpeed (lab) | 2,8 s | 180 ms | 0,05 | 72 |
-| CrUX (field) | 3,2 s | 210 ms | 0,06 | — |
+| Page | Search clicks | Impressions / CTR | CrUX field vitals | PageSpeed lab | Priority |
+|---|---:|---:|---|---|---|
+| `[URL]` | `[API result]` | `[API result]` | `[API result or no data]` | `[API result]` | `[reason]` |
 
-**Reading** — lab is optimistic. Prioritize field LCP and INP.
+Clearly label CrUX as field data and PageSpeed as lab data. Explain why the page is prioritized; do not infer conversion impact from a lab score alone.
+
+## 3. Detailed growth dashboard
+
+**Decision:** `[healthy / needs work / urgent issue + one-sentence evidence]`
+
+**Scope:** `[property ids, dates, comparison dates, sources used/unavailable]`
+
+**Confidence:** `[high / medium / low + reason]`
+
+| KPI | Current | Comparison | Change | Source / confidence |
+|---|---:|---:|---:|---|
+| Sessions / users | `[API result]` | `[API result]` | `[calculated]` | GA4 |
+| Qualified conversions / revenue | `[API result or N/D]` | `[API result or N/D]` | `[calculated or N/D]` | GA4 / ecommerce |
+| Organic clicks / CTR / position | `[API result]` | `[API result]` | `[calculated]` | Search Console |
+| Mobile LCP / INP / CLS | `[CrUX result or N/D]` | `[CrUX result or N/D]` | `[calculated or N/D]` | CrUX field data |
+
+### Watch points (minimum 10 for a full audit)
+
+Fill each row from the actual account evidence. These are coverage prompts, not assumed defects.
+
+| # | Area | Evidence and period | Why it matters | Change / monitor | KPI and effect estimate |
+|---:|---|---|---|---|---|
+| 1 | Acquisition mix | `[GA4 channel change]` | `[business relevance]` | `[action]` | `[KPI; formula or not yet quantifiable]` |
+| 2 | Landing page performance | `[GA4 top/declining pages]` | `[business relevance]` | `[action]` | `[KPI; formula or not yet quantifiable]` |
+| 3 | Conversion funnel | `[GA4 event counts/rates]` | `[largest evidenced drop]` | `[action]` | `[KPI; formula or not yet quantifiable]` |
+| 4 | Event tracking quality | `[GTM audit / GA4 event evidence]` | `[measurement risk]` | `[repair/validate]` | `[coverage or reconciliation KPI]` |
+| 5 | Search demand | `[Search Console impressions/query trend]` | `[demand opportunity/risk]` | `[action]` | `[clicks = impressions × CTR gap, if justified]` |
+| 6 | Organic CTR | `[clicks, impressions, position]` | `[page/query opportunity]` | `[snippet/content test]` | `[formula + site-specific target]` |
+| 7 | Indexation | `[URL inspection / sitemap result]` | `[affected valuable URLs]` | `[technical fix/check]` | `[indexed eligible URLs; quantify only from API data]` |
+| 8 | Mobile experience | `[CrUX PHONE result]` | `[field-user impact]` | `[action]` | `[affected sessions and CWV target]` |
+| 9 | Page speed lab diagnostics | `[PageSpeed URL/strategy result]` | `[likely bottleneck, not causal proof]` | `[technical test]` | `[lab metric target; revenue only after experiment]` |
+| 10 | Segment / device difference | `[GA4 or Search Console breakdown]` | `[which segment differs]` | `[action]` | `[segment KPI with volume]` |
+| 11 | Data coverage / freshness | `[missing source, stale date, or threshold]` | `[confidence limit]` | `[access/measurement fix]` | `[coverage/freshness target]` |
+
+If a category has no evidence, label it “à vérifier / hypothèse” and list the data needed. Do not state it as a finding.
+
+### Three priorities
+
+| Horizon | Priority and owner | Implementation | Success measure | Expected effect / calculation | Confidence |
+|---|---|---|---|---|---|
+| Short term (0–30 days) | `[highest evidenced opportunity; role]` | `[steps, effort, dependencies]` | `[baseline → target; review date]` | `[defensible range, formula, and assumptions; or target only]` | `[level + reason]` |
+| Medium term (1–3 months) | `[next opportunity; role]` | `[steps, effort, dependencies]` | `[baseline → target; review date]` | `[defensible range, formula, and assumptions; or target only]` | `[level + reason]` |
+| Long term (3–12 months) | `[structural opportunity; role]` | `[steps, effort, dependencies]` | `[baseline → target; review date]` | `[defensible range, formula, and assumptions; or target only]` | `[level + reason]` |
+
+For ecommerce, a scenario may use `eligible sessions × tested conversion-rate change × average order value`. For lead generation, use `eligible sessions × tested conversion-rate change`; do not estimate revenue without lead-to-sale and value data. For SEO CTR, use `impressions × (site-specific target CTR − current CTR)`. Show estimates as scenarios, never guarantees, and do not add overlapping opportunities.
 
 ## Thresholds to mention
 

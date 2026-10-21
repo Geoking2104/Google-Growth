@@ -1,7 +1,7 @@
 interface:
   display_name: "Google Growth"
-  short_description: "Live GA4, GTM, Search Console, PageSpeed, and CrUX for growth briefings."
-  default_prompt: "Give me a traffic briefing for the last 28 days."
+  short_description: "Detailed growth dashboards and evidence-based actions from live Google data."
+  default_prompt: "Build a detailed growth dashboard for the last 28 complete days, compare it with the previous 28 days, surface at least 10 evidence-backed watch points, and give exactly 3 quantified priorities for short, medium, and long term."
 
 dependencies:
   tools:
